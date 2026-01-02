@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Time Bank</title>
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/0d0d10/ffffff?text=TimeBank">
+    
+    <style>
+        body {
+            background-color: #0d0d10;
+            color: white;
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .alert-toggle {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            opacity: 0.4;
+            transition: 0.3s;
+            z-index: 100;
+        }
+        .alert-toggle.active { opacity: 1; }
+        
+        .bell-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 10px 10px 2px 2px;
+            position: relative;
+            margin: 2px auto;
+        }
+        .bell-icon::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 4px;
+            background: white;
+            border-radius: 0 0 3px 3px;
+        }
+        
+        .mute-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 34px;
+            height: 2px;
+            background: #ff3b30;
+            transform: translate(-50%, -50%) rotate(45deg);
+            display: none;
+        }
+        .is-muted .mute-line { display: block; }
+        .is-muted .bell-icon { border-color: #666; }
+        .is-muted .bell-icon::after { background: #666; }
+
+        #alertOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: inset 0 0 40px rgba(255, 59, 48, 0); }
+            50% { box-shadow: inset 0 0 120px rgba(255, 59, 48, 0.4); }
+            100% { box-shadow: inset 0 0 40px rgba(255, 59, 48, 0); }
+        }
+        .alert-active { animation: pulse-red 2s infinite ease-in-out; }
+
+        .app-wrapper { display: flex; align-items: center; gap: 20px; }
+
+        .quick-controls { display: flex; flex-direction: column; gap: 12px; }
+        .btn-quick {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            width: 55px;
+            padding: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .btn-quick:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+        .timer-container {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; }
+
+        .timer-info { text-align: center; z-index: 10; transition: transform 0.1s; pointer-events: none; }
+        .status-mark { font-size: 28px; height: 35px; font-weight: 200; }
+        .time-main { font-size: 52px; font-weight: bold; line-height: 1; letter-spacing: 2px; }
+        .time-sub-m { font-size: 28px; opacity: 0.8; margin-top: 5px; }
+        .time-sub-ms { font-size: 18px; opacity: 0.5; font-family: monospace; }
+
+        .bottom-area {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .controls { display: flex; align-items: center; gap: 50px; height: 80px; }
+
+        .btn-start-wrap { text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; }
+        .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; }
+        .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 2px; }
+
+        .btn-pause {
+            width: 65px; height: 65px;
+            background-color: #ff3b30;
+            border: none; border-radius: 50%;
+            color: white; font-size: 24px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            opacity: 0; transform: scale(0.5); pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            visibility: hidden;
+        }
+        .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
+
+        .clear-btn {
+            background: transparent; border: 1px solid #333; color: #555;
+            padding: 8px 60px; border-radius: 10px; cursor: pointer;
+            font-size: 11px; letter-spacing: 2px; transition: 0.3s;
+        }
+
+        .floating-text {
+            position: absolute; color: white; font-weight: bold; pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 100; font-size: 20px;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(0); }
+            20% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-40px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
+        <div class="bell-icon"></div>
+        <div class="mute-line"></div>
+    </div>
+
+    <div id="alertOverlay"></div>
+
+    <div class="app-wrapper">
+        <div class="quick-controls">
+            <button class="btn-quick" onclick="addTime(-1800)">-30m</button>
+            <button class="btn-quick" onclick="addTime(-900)">-15m</button>
+            <button class="btn-quick" onclick="addTime(-300)">-5m</button>
+            <button class="btn-quick" onclick="addTime(-60)">-1m</button>
+        </div>
+
+        <div class="timer-container">
+            <canvas id="timerCanvas" width="380" height="380"></canvas>
+            <div class="timer-info" id="timerInfo">
+                <div id="statusMark" class="status-mark"></div>
+                <div id="timeMain" class="time-main">00:00</div>
+                <div id="timeSubM" class="time-sub-m">00</div>
+                <div id="timeSubMs" class="time-sub-ms">00</div>
+            </div>
+        </div>
+
+        <div class="quick-controls">
+            <button class="btn-quick" onclick="addTime(1800)">+30m</button>
+            <button class="btn-quick" onclick="addTime(900)">+15m</button>
+            <button class="btn-quick" onclick="addTime(300)">+5m</button>
+            <button class="btn-quick" onclick="addTime(60)">+1m</button>
+        </div>
+    </div>
+
+    <div class="bottom-area">
+        <div class="controls">
+            <button class="btn-start-wrap" onclick="startTimer('minus')">
+                <span>ー</span><label>使う</label>
+            </button>
+            <button id="pauseBtn" class="btn-pause" onclick="pauseTimer()">||</button>
+            <button class="btn-start-wrap" onclick="startTimer('plus')">
+                <span>＋</span><label>貯める</label>
+            </button>
+        </div>
+        <button class="clear-btn" onclick="clearTime()">CLEAR</button>
+    </div>
+
+    <script>
+        let actualMs = 0;
+        let visualMs = 0;
+        let timerId = null;
+        let mode = null;
+        let lastTimestamp = 0;
+        let isMuted = false;
+        let lastAnnouncedSec = null;
+        let particles = [];
+
+        const canvas = document.getElementById('timerCanvas');
+        const ctx = canvas.getContext('2d');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const alertOverlay = document.getElementById('alertOverlay');
+        const timerInfo = document.getElementById('timerInfo');
+        const alertToggle = document.getElementById('alertToggle');
+
+        const plusGradients = [
+            ['#8A2BE2', '#4B0082'], ['#0000FF', '#00008B'], ['#00FF00', '#008000'],
+            ['#FFFF00', '#FFD700'], ['#FF7F00', '#FF4500'], ['#FF0000', '#8B0000']
+        ];
+        const minusGradients = [
+            ['#FF4D4D', '#B30000'], ['#FF1A1A', '#800000'], ['#CC0000', '#660000']
+        ];
+
+        class Particle {
+            constructor(x, y, color, isCharging = false) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = isCharging ? Math.random() * 2 + 1 : Math.random() * 3 + 2;
+                this.targetX = canvas.width / 2;
+                this.targetY = canvas.height / 2;
+                this.speed = isCharging ? 0.02 + Math.random() * 0.03 : 0.05 + Math.random() * 0.05;
+                this.life = 1.0;
+                this.isCharging = isCharging;
+            }
+            update() {
+                if (this.isCharging) {
+                    this.x += (this.targetX - this.x) * this.speed;
+                    this.y += (this.targetY - this.y) * this.speed;
+                } else {
+                    const angle = Math.atan2(this.y - this.targetY, this.x - this.targetX);
+                    this.x += Math.cos(angle) * 5;
+                    this.y += Math.sin(angle) * 5;
+                }
+                this.life -= 0.015;
+                const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+                return this.life > 0 && (this.isCharging ? dist > 5 : true);
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        function getCurrentActiveColor() {
+            const absSec = Math.abs(visualMs / 1000);
+            const fullCircles = Math.floor(absSec / 3600);
+            const activeGradients = (visualMs >= 0) ? plusGradients : minusGradients;
+            const maxIdx = Math.min(fullCircles, activeGradients.length - 1);
+            const randomIdx = Math.floor(Math.random() * (maxIdx + 1));
+            return activeGradients[randomIdx][0];
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            alertToggle.classList.toggle('is-muted', isMuted);
+        }
+
+        function speak(text) {
+            if (isMuted) return;
+            window.speechSynthesis.cancel();
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'en-US';
+            uttr.rate = 1.1;
+            window.speechSynthesis.speak(uttr);
+        }
+
+        function startTimer(newMode) {
+            if (timerId) cancelAnimationFrame(timerId);
+            mode = newMode;
+            document.getElementById('statusMark').innerText = mode === 'plus' ? '＋' : 'ー';
+            pauseBtn.classList.add('show');
+            lastTimestamp = performance.now();
+            
+            const tick = (now) => {
+                const delta = now - lastTimestamp;
+                lastTimestamp = now;
+                actualMs += (mode === 'plus' ? delta : -delta);
+                
+                if (mode === 'plus' && Math.random() > 0.7) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const r = 200 + Math.random() * 50;
+                    particles.push(new Particle(
+                        canvas.width/2 + Math.cos(angle)*r, 
+                        canvas.height/2 + Math.sin(angle)*r, 
+                        getCurrentActiveColor(), 
+                        true
+                    ));
+                }
+
+                checkCountdown();
+                timerId = requestAnimationFrame(tick);
+            };
+            timerId = requestAnimationFrame(tick);
+        }
+
+        function checkCountdown() {
+            if (mode !== 'minus') return;
+            const currentSec = Math.floor(actualMs / 1000);
+            if (currentSec === lastAnnouncedSec) return;
+
+            if (currentSec === 600) speak("10 minutes left");
+            else if (currentSec === 300) speak("5 minutes left");
+            else if (currentSec === 60) speak("1 minute left");
+            else if (currentSec === 30) speak("30 seconds left");
+            else if (currentSec <= 10 && currentSec >= 1) speak(String(currentSec));
+            else if (currentSec === 0) speak("Time over");
+
+            lastAnnouncedSec = currentSec;
+        }
+
+        function pauseTimer() {
+            cancelAnimationFrame(timerId);
+            timerId = null;
+            mode = null;
+            document.getElementById('statusMark').innerText = '';
+            pauseBtn.classList.remove('show');
+        }
+
+        function clearTime() {
+            pauseTimer();
+            actualMs = 0;
+            visualMs = 0;
+            lastAnnouncedSec = null;
+        }
+
+        function addTime(amount) {
+            actualMs += amount * 1000;
+            showFloatingText(amount > 0 ? `+${Math.abs(amount/60)}m` : `-${Math.abs(amount/60)}m`);
+            
+            const rect = canvas.getBoundingClientRect();
+            for(let i=0; i<12; i++) {
+                const isPlus = amount > 0;
+                const color = getCurrentActiveColor();
+                const startX = isPlus ? rect.right + 40 : rect.width/2 + rect.left;
+                const startY = isPlus ? rect.top + rect.height/2 + (Math.random() - 0.5) * 200 : rect.height/2 + rect.top;
+                particles.push(new Particle(startX - rect.left, startY - rect.top, color, isPlus));
+            }
+
+            timerInfo.style.transform = 'scale(1.1)';
+            setTimeout(() => timerInfo.style.transform = 'scale(1)', 100);
+        }
+
+        function showFloatingText(text) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.left = `50%`; el.style.top = `35%`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function animate() {
+            const diff = actualMs - visualMs;
+            visualMs += diff * 0.15;
+            updateUI();
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        function updateUI() {
+            const displayMs = Math.round(visualMs);
+            const absMs = Math.abs(displayMs);
+            const h = Math.floor(absMs / 3600000);
+            const m = Math.floor((absMs % 3600000) / 60000);
+            const s = Math.floor((absMs % 60000) / 1000);
+            const ms = Math.floor((absMs % 1000) / 10);
+            document.getElementById('timeMain').innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            document.getElementById('timeSubM').innerText = String(s).padStart(2, '0');
+            document.getElementById('timeSubMs').innerText = String(ms).padStart(2, '0');
+            
+            if (actualMs < 0) {
+                alertOverlay.classList.add('alert-active');
+                document.querySelectorAll('.time-main, .time-sub-m, #statusMark').forEach(el => el.style.color = '#ff3b30');
+            } else {
+                alertOverlay.classList.remove('alert-active');
+                document.querySelectorAll('.time-main, .time-sub-m, #statusMark').forEach(el => el.style.color = 'white');
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let cx = canvas.width / 2;
+            let cy = canvas.height / 2;
+            const currentSec = actualMs / 1000;
+            if (mode === 'minus' && currentSec > 0 && currentSec <= 10) {
+                const intensity = (11 - currentSec) * 1.5;
+                cx += (Math.random() - 0.5) * intensity;
+                cy += (Math.random() - 0.5) * intensity;
+            }
+            const time = performance.now();
+            const slowPulse = Math.sin(time / 600);
+            const chargeIntensity = (slowPulse + 1) / 2;
+            const heartbeat = mode ? chargeIntensity * 12 : 0;
+            const bgPulse = mode ? chargeIntensity * 0.25 : 0;
+            const bgPulseColor = actualMs < 0 ? `255, 59, 48` : (mode === 'plus' ? `255, 255, 255` : `255, 255, 255`);
+
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, 95 + (i * 14), 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(${bgPulseColor}, ${0.05 + bgPulse})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            const totalSeconds = visualMs / 1000;
+            const absSec = Math.abs(totalSeconds);
+            const fullCircles = Math.floor(absSec / 3600);
+            const currentProgress = (absSec % 3600) / 3600;
+            const activeGradients = (totalSeconds >= 0) ? plusGradients : minusGradients;
+
+            for (let i = 0; i <= fullCircles && i < 6; i++) {
+                const radius = 95 + (i * 14);
+                const progress = (i < fullCircles) ? 1 : currentProgress;
+                const gradIndex = i % activeGradients.length;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, -Math.PI / 2, (Math.PI * 2 * progress) - Math.PI / 2);
+                ctx.shadowBlur = ((totalSeconds >= 0) ? 12 : 20) + heartbeat;
+                ctx.shadowColor = activeGradients[gradIndex][0];
+                ctx.strokeStyle = activeGradients[gradIndex][0];
+                ctx.lineWidth = 5 + (heartbeat / 3);
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            particles = particles.filter(p => {
+                if (p.update()) {
+                    p.draw();
+                    return true;
+                }
+                return false;
+            });
+        }
+        animate();
+    </script>
+</body>
+</html>
