@@ -27,12 +27,27 @@
 
         #starCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
-        /* --- Header & Logo --- */
+        /* --- Header & Text Logo --- */
         header {
             position: absolute; top: var(--safe-top); width: 100%;
             display: flex; align-items: center; justify-content: center; height: 60px; z-index: 100;
         }
-        .logo { height: 28px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+
+        /* 画像の代わりにテキストでロゴを再現 */
+        .logo-text {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+            display: flex;
+            align-items: center;
+        }
+        .logo-text span {
+            color: var(--accent-color);
+            margin-right: 4px;
+        }
 
         /* --- Hamburger Menu --- */
         .menu-trigger {
@@ -119,7 +134,7 @@
         @media (max-width: 600px) {
             body { justify-content: flex-start; }
             header { height: 50px; }
-            .logo { height: 22px; }
+            .logo-text { font-size: 18px; letter-spacing: 3px; }
             .app-wrapper { flex-direction: column; gap: 15px; margin-top: 60px; }
             .timer-container { width: 300px; height: 300px; order: 1; }
             #timerCanvas { width: 300px; height: 300px; }
@@ -137,7 +152,7 @@
         <div class="menu-trigger" onclick="toggleMenu()">
             <span></span><span></span><span></span>
         </div>
-        <img src="timebank-logo.png" alt="Time Bank" class="logo">
+        <div class="logo-text">TIME<span>BANK</span></div>
         <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
             <div class="bell-icon"></div>
             <div class="mute-line"></div>
@@ -154,7 +169,7 @@
         <div class="menu-section">
             <h3>Development</h3>
             <p class="desc-text">
-                Time Bankは、時間の「貯金」と「消費」を視覚化することで、生活リズムの改善を目的としたプロジェクトです。
+                Time Bankは、時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。
             </p>
         </div>
     </div>
@@ -209,7 +224,7 @@
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        // --- Timer Core Logic ---
+        // --- Timer Logic (JavaScriptは変更なし) ---
         let actualMs = 0, visualMs = 0, timerId = null, mode = null, lastTimestamp = 0, isMuted = false, lastAnnouncedSec = null, particles = [], rotationAngle = 0;
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
@@ -332,7 +347,7 @@
                 if (progress > 0) {
                     ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotationAngle * (1 + i * 0.15));
                     ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
-                    ctx.lineWidth = ((mode === 'minus') ? 4.0 : 3.0) + (pulse * (mode === 'minus' ? 3.0 : 2.0));
+                    ctx.lineWidth = ((mode === 'minus' ? 4.0 : 3.0) + (pulse * (mode === 'minus' ? 3.0 : 2.0)));
                     ctx.shadowBlur = (mode === 'minus' ? 12 : 8) + (pulse * 12);
                     ctx.shadowColor = activeGradients[i % activeGradients.length][0];
                     ctx.strokeStyle = activeGradients[i % activeGradients.length][0];
