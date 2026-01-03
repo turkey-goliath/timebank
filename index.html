@@ -27,29 +27,19 @@
 
         #starCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
-        /* --- Header & Text Logo --- */
         header {
             position: absolute; top: var(--safe-top); width: 100%;
             display: flex; align-items: center; justify-content: center; height: 60px; z-index: 100;
         }
 
-        /* 画像の代わりにテキストでロゴを再現 */
         .logo-text {
-            font-size: 24px;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: #ffffff;
+            font-size: 24px; font-weight: 900; letter-spacing: 4px; color: #ffffff;
             text-transform: uppercase;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
-            display: flex;
-            align-items: center;
+            display: flex; align-items: center;
         }
-        .logo-text span {
-            color: var(--accent-color);
-            margin-right: 4px;
-        }
+        .logo-text span { color: var(--accent-color); margin-right: 4px; }
 
-        /* --- Hamburger Menu --- */
         .menu-trigger {
             position: absolute; left: 20px; cursor: pointer;
             width: 30px; height: 30px; display: flex; flex-direction: column; justify-content: center; gap: 6px;
@@ -63,36 +53,20 @@
             padding: 80px 30px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.1);
         }
         .side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
-        .menu-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; z-index: 150;
-        }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 150; }
         
         .menu-section { margin-bottom: 40px; }
         .menu-section h3 { font-size: 12px; color: var(--accent-color); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; opacity: 0.8; }
-        .menu-item { color: #ccc; text-decoration: none; display: block; padding: 10px 0; font-size: 15px; cursor: pointer; }
-        .menu-item:hover { color: white; }
-        .desc-text { font-size: 13px; line-height: 1.6; color: #888; }
+        .menu-item { color: #888; text-decoration: none; display: block; padding: 10px 0; font-size: 15px; cursor: pointer; transition: 0.3s; }
+        .menu-item.active { color: white; font-weight: bold; }
+        .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
+        .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 10px; }
 
-        /* --- Elements --- */
-        .alert-toggle {
-            position: absolute; top: 15px; right: 20px; 
-            cursor: pointer; width: 30px; height: 30px;
-            opacity: 0.4; transition: 0.3s; z-index: 100;
-        }
+        .alert-toggle { position: absolute; top: 15px; right: 20px; cursor: pointer; width: 30px; height: 30px; opacity: 0.4; transition: 0.3s; z-index: 100; }
         .alert-toggle.active { opacity: 1; }
-        .bell-icon {
-            width: 20px; height: 20px; border: 2px solid white; border-radius: 10px 10px 2px 2px;
-            position: relative; margin: 2px auto;
-        }
-        .bell-icon::after {
-            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-            width: 6px; height: 4px; background: white; border-radius: 0 0 3px 3px;
-        }
-        .mute-line {
-            position: absolute; top: 50%; left: 50%; width: 34px; height: 2px;
-            background: #ff3b30; transform: translate(-50%, -50%) rotate(45deg); display: none;
-        }
+        .bell-icon { width: 20px; height: 20px; border: 2px solid white; border-radius: 10px 10px 2px 2px; position: relative; margin: 2px auto; }
+        .bell-icon::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 6px; height: 4px; background: white; border-radius: 0 0 3px 3px; }
+        .mute-line { position: absolute; top: 50%; left: 50%; width: 34px; height: 2px; background: #ff3b30; transform: translate(-50%, -50%) rotate(45deg); display: none; }
         .is-muted .mute-line { display: block; }
 
         #alertOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
@@ -105,11 +79,7 @@
 
         .app-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 800px; margin-top: 40px; }
         .quick-controls { display: flex; flex-direction: column; gap: 12px; }
-        .btn-quick {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px;
-            transition: all 0.2s; touch-action: manipulation;
-        }
+        .btn-quick { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px; transition: all 0.2s; touch-action: manipulation; }
         .btn-quick:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); color: #fff; }
 
         .timer-container { position: relative; width: 450px; height: 450px; display: flex; align-items: center; justify-content: center; }
@@ -124,9 +94,9 @@
 
         .bottom-area { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; padding-bottom: env(safe-area-inset-bottom, 20px); }
         .controls { display: flex; align-items: center; gap: 50px; height: 80px; }
-        .btn-start-wrap { text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; touch-action: manipulation; }
+        .btn-start-wrap { text-align: center; width: 75px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; touch-action: manipulation; }
         .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; }
-        .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 2px; }
+        .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 1px; display: block; }
         .btn-pause { width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden; touch-action: manipulation; }
         .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
         .clear-btn { background: transparent; border: 1px solid #333; color: #555; padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s; touch-action: manipulation; }
@@ -162,15 +132,13 @@
     <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
     <div class="side-menu" id="sideMenu">
         <div class="menu-section">
-            <h3>Language</h3>
-            <div class="menu-item">日本語</div>
-            <div class="menu-item" style="opacity: 0.4;">English (Soon)</div>
+            <h3 id="langHeader">Language</h3>
+            <div id="btnJp" class="menu-item active" onclick="setLanguage('ja')">日本語</div>
+            <div id="btnEn" class="menu-item" onclick="setLanguage('en')">English</div>
         </div>
         <div class="menu-section">
-            <h3>Development</h3>
-            <p class="desc-text">
-                Time Bankは、時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。
-            </p>
+            <h3 id="devHeader">DEVELOPMENT</h3>
+            <p id="devDesc" class="desc-text"></p>
         </div>
     </div>
 
@@ -205,18 +173,48 @@
     <div class="bottom-area">
         <div class="controls">
             <button class="btn-start-wrap" onclick="startTimer('minus')">
-                <span>ー</span><label>使う</label>
+                <span>ー</span><label id="labelUse">使う</label>
             </button>
             <button id="pauseBtn" class="btn-pause" onclick="pauseTimer()">||</button>
             <button class="btn-start-wrap" onclick="startTimer('plus')">
-                <span>＋</span><label>貯める</label>
+                <span>＋</span><label id="labelCharge">貯める</label>
             </button>
         </div>
-        <button class="clear-btn" onclick="clearTime()">CLEAR</button>
+        <button id="resetBtn" class="clear-btn" onclick="clearTime()">リセット</button>
     </div>
 
     <script>
-        // --- Menu Logic ---
+        // --- 言語設定データ ---
+        const translations = {
+            ja: {
+                use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中",
+                devHeader: "開発目的",
+                devDesc: "<span class='desc-highlight'>「誇りを持って遊び、全力で学ぼう」</span>「もうゲームはダメ！」と言われる毎日は、もう終わり。Time Bankは、君の頑張りを正当に評価する新しいルールです。\n\nやりたいことがあったら、自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのツールです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
+                timeOver: "時間終了", left: "残り", minutes: "分", voiceLang: "ja-JP"
+            },
+            en: {
+                use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING",
+                devHeader: "DEVELOPMENT",
+                devDesc: "<span class='desc-highlight'>\"Play with Pride, Learn with Passion\"</span>The days of being told \"No more games!\" are over. Time Bank is a new rule that gives you the credit you deserve.\n\nWhen you have something you want to do, save your own time and spend it at full power! This is the tool for you.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' managing children's daily life like a game.)",
+                timeOver: "Time over", left: "", minutes: "minutes left", voiceLang: "en-US"
+            }
+        };
+
+        let currentLang = 'ja';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('labelUse').innerText = translations[lang].use;
+            document.getElementById('labelCharge').innerText = translations[lang].charge;
+            document.getElementById('resetBtn').innerText = translations[lang].reset;
+            document.getElementById('devHeader').innerText = translations[lang].devHeader;
+            document.getElementById('devDesc').innerHTML = translations[lang].devDesc; // HTMLタグ反映のためinnerHTML
+            document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
+            document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+            if (mode) statusLabel.innerText = (mode === 'plus') ? translations[lang].charging : translations[lang].using;
+        }
+
+        // --- メニューロジック ---
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('menuOverlay');
@@ -224,13 +222,15 @@
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        // --- Timer Logic (JavaScriptは変更なし) ---
+        // --- タイマー・演出ロジック ---
         let actualMs = 0, visualMs = 0, timerId = null, mode = null, lastTimestamp = 0, isMuted = false, lastAnnouncedSec = null, particles = [], rotationAngle = 0;
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
         const pauseBtn = document.getElementById('pauseBtn'), statusLabel = document.getElementById('statusLabel');
         const cyberGradients = [['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#7000ff', '#4b0082'], ['#ff00f2', '#b000ff']];
+        
         let stars = [];
+        let shootingStars = [];
 
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
@@ -241,6 +241,14 @@
         }
         window.addEventListener('resize', initStars); initStars();
 
+        function createShootingStar() {
+            const startX = Math.random() * starCanvas.width;
+            const startY = Math.random() * (starCanvas.height / 2);
+            const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.2;
+            const speed = 10 + Math.random() * 15;
+            shootingStars.push({ x: startX, y: startY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, opacity: 1.0 });
+        }
+
         function drawStars() {
             sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
             stars.forEach(s => {
@@ -249,6 +257,19 @@
                 if (s.y < 0) s.y = starCanvas.height; if (s.y > starCanvas.height) s.y = 0;
                 sctx.beginPath(); sctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
                 sctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`; sctx.fill();
+            });
+            if (Math.random() < 1 / (60 * 30)) createShootingStar();
+            shootingStars = shootingStars.filter(ss => {
+                ss.x += ss.vx; ss.y += ss.vy; ss.opacity -= 0.02;
+                if (ss.opacity <= 0) return false;
+                sctx.beginPath();
+                const grad = sctx.createLinearGradient(ss.x, ss.y, ss.x - ss.vx * 2, ss.y - ss.vy * 2);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${ss.opacity})`);
+                grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                sctx.strokeStyle = grad; sctx.lineWidth = 2;
+                sctx.moveTo(ss.x, ss.y); sctx.lineTo(ss.x - ss.vx * 2, ss.y - ss.vy * 2);
+                sctx.stroke();
+                return true;
             });
         }
 
@@ -272,7 +293,7 @@
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
             mode = newMode;
-            statusLabel.innerText = (mode === 'plus') ? "CHARGING" : "USING";
+            statusLabel.innerText = (mode === 'plus') ? translations[currentLang].charging : translations[currentLang].using;
             statusLabel.classList.add('pulse-text');
             pauseBtn.classList.add('show');
             lastTimestamp = performance.now();
@@ -287,12 +308,15 @@
         }
 
         function toggleMute() { isMuted = !isMuted; document.getElementById('alertToggle').classList.toggle('is-muted', isMuted); }
-        function speak(text) { if (!isMuted) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; window.speechSynthesis.speak(u); } }
+        function speak(text) { if (!isMuted) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = translations[currentLang].voiceLang; window.speechSynthesis.speak(u); } }
 
         function checkCountdown() {
             const currentSec = Math.floor(actualMs / 1000);
             if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
-                if ([600, 300, 60, 0].includes(currentSec)) speak(currentSec === 0 ? "Time over" : currentSec/60 + " minutes left");
+                if ([600, 300, 60, 0].includes(currentSec)) {
+                    const msg = currentSec === 0 ? translations[currentLang].timeOver : `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
+                    speak(msg);
+                }
                 lastAnnouncedSec = currentSec;
             }
         }
@@ -346,9 +370,11 @@
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
                 if (progress > 0) {
                     ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotationAngle * (1 + i * 0.15));
-                    ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
-                    ctx.lineWidth = ((mode === 'minus' ? 4.0 : 3.0) + (pulse * (mode === 'minus' ? 3.0 : 2.0)));
-                    ctx.shadowBlur = (mode === 'minus' ? 12 : 8) + (pulse * 12);
+                    ctx.beginPath();
+                    if (totalSeconds >= 0) ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
+                    else ctx.arc(0, 0, radius, 0, -Math.PI * 2 * progress, true);
+                    ctx.lineWidth = ((totalSeconds < 0) ? 4.5 : 3.0) + (pulse * (totalSeconds < 0 ? 3.0 : 2.0));
+                    ctx.shadowBlur = (totalSeconds < 0 ? 15 : 8) + (pulse * 12);
                     ctx.shadowColor = activeGradients[i % activeGradients.length][0];
                     ctx.strokeStyle = activeGradients[i % activeGradients.length][0];
                     ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
@@ -356,6 +382,7 @@
             }
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
+        setLanguage('ja'); // 初期化
         animate();
     </script>
 </body>
