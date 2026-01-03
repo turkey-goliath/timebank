@@ -60,7 +60,7 @@
         .menu-item { color: #888; text-decoration: none; display: block; padding: 10px 0; font-size: 15px; cursor: pointer; transition: 0.3s; }
         .menu-item.active { color: white; font-weight: bold; }
         .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
-        .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 10px; }
+        .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 15px; font-size: 15px; }
 
         .alert-toggle { position: absolute; top: 15px; right: 20px; cursor: pointer; width: 30px; height: 30px; opacity: 0.4; transition: 0.3s; z-index: 100; }
         .alert-toggle.active { opacity: 1; }
@@ -187,14 +187,14 @@
         const translations = {
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
-                devHeader: "開発目的",
-                devDesc: "<span class='desc-highlight'>「誇りを持って学び、全力で遊ぼう」</span>Time Bankは、君の頑張りを正当に評価するツールです。\n\nやりたいことがあったら、自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのルールです。",
+                devHeader: "DEVELOPMENT",
+                devDesc: "<span class='desc-highlight'>「誇りを持って学び、全力で遊ぼう」</span>「もうゲームはダメ！」と言われる毎日はもう終わり。Time Bankは、君の頑張りを正当に評価する新しいルールです。\n\nやりたいことがあったら、自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのツールです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
                 timeOver: "時間終了", left: "残り", minutes: "分", voiceLang: "ja-JP"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>\"Play with Passion, Learn with Pride\"</span>Time Bank is a tool that gives you the credit you deserve.",
+                devDesc: "<span class='desc-highlight'>\"Play with Passion, Learn with Pride\"</span>The days of being told \"No more games!\" are over. Time Bank is a new rule that gives you the credit you deserve.\n\nWhen you have something you want to do, save your own time and spend it at full power! This is the tool for you.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' managing children's daily life like a game.)",
                 timeOver: "Time over", left: "", minutes: "minutes left", voiceLang: "en-US"
             }
         };
@@ -209,7 +209,7 @@
             document.getElementById('devDesc').innerHTML = translations[lang].devDesc;
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
-            updateUI(); // ステータス表示の即時反映
+            updateUI();
         }
 
         function toggleMenu() {
@@ -391,7 +391,6 @@
             const isNegative = actualMs < 0;
             const label = document.getElementById('statusLabel');
 
-            // --- ステータスラベルのロジック修正 ---
             if (isNegative) {
                 label.innerText = translations[currentLang].shortage;
                 label.style.color = '#ff3b30';
