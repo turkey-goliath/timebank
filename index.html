@@ -188,13 +188,13 @@
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>「誇りを持って学び、全力で遊ぼう」</span>「もうゲームはダメ！」と言われる毎日はもう終わり。Time Bankは、君の頑張りを正当に評価する新しいルールです。\n\nやりたいことがあったら、読書や勉強をして自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのツールです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
+                devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>Time Bankは、君の頑張りを正当に評価するタイムツールです。\n\nやりたいことがあったら、読書や勉強をして自分で時間を貯めて、遊ぶときは思いきって時間を使う。遊びと学びのバランスをとりたい子どもたちにおすすめです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
                 timeOver: "時間終了", left: "残り", minutes: "分", voiceLang: "ja-JP"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>\"Play with Passion, Learn with Pride\"</span>The days of being told \"No more games!\" are over. Time Bank is a new rule that gives you the credit you deserve.\n\nWhen you have something you want to do, save your own time and spend it at full power! This is the tool for you.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' managing children's daily life like a game.)",
+                devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>Time Bank is a time management tool that fairly rewards your efforts.\n\nWhen you want to do something fun, save up time by reading or studying, then spend it boldly when it's time to play. Perfect for kids who want to balance learning and playing.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' helping children manage and improve their daily activities like a game.)",
                 timeOver: "Time over", left: "", minutes: "minutes left", voiceLang: "en-US"
             }
         };
@@ -326,7 +326,7 @@
             }
         }
 
-        // 通知リクエスト（ページ読み込み時に実行）
+        // 通知リクエスト関数
         function requestNotificationPermission() {
             if ("Notification" in window) {
                 Notification.requestPermission();
@@ -335,6 +335,10 @@
 
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
+            
+            // 通知許可をリクエスト（ユーザー操作タイミングで呼ぶのが確実）
+            requestNotificationPermission();
+
             mode = newMode;
             pauseBtn.classList.add('show');
             lastTimestamp = performance.now();
@@ -358,7 +362,7 @@
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
 
-                    // プッシュ通知の送信
+                    // プッシュ通知
                     if ("Notification" in window && Notification.permission === "granted") {
                         new Notification("TIME BANK", {
                             body: translations[currentLang].timeOver,
@@ -459,8 +463,7 @@
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
         
-        // 初期化
-        requestNotificationPermission();
+        // 初期動作
         setLanguage('ja');
         animate();
     </script>
