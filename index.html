@@ -228,6 +228,18 @@
         let stars = [];
         let shootingStars = [];
 
+        // --- 無音再生ハック用の設定 ---
+        const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A');
+        silentAudio.loop = true;
+
+        function keepAlive(play) {
+            if (play) {
+                silentAudio.play().catch(e => console.log("Silent audio failed:", e));
+            } else {
+                silentAudio.pause();
+            }
+        }
+
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
             stars = [];
@@ -326,7 +338,6 @@
             }
         }
 
-        // 通知リクエスト関数
         function requestNotificationPermission() {
             if ("Notification" in window) {
                 Notification.requestPermission();
@@ -336,8 +347,8 @@
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
             
-            // 通知許可をリクエスト（ユーザー操作タイミングで呼ぶのが確実）
             requestNotificationPermission();
+            keepAlive(true); // ★ブラウザを眠らせないようにする
 
             mode = newMode;
             pauseBtn.classList.add('show');
@@ -362,7 +373,6 @@
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
 
-                    // プッシュ通知
                     if ("Notification" in window && Notification.permission === "granted") {
                         new Notification("TIME BANK", {
                             body: translations[currentLang].timeOver,
@@ -381,6 +391,7 @@
         function pauseTimer() {
             cancelAnimationFrame(timerId); timerId = null; mode = null;
             pauseBtn.classList.remove('show');
+            keepAlive(false); // ★タイマーを止めたら解除
         }
 
         function clearTime() { 
@@ -463,7 +474,6 @@
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
         
-        // 初期動作
         setLanguage('ja');
         animate();
     </script>
