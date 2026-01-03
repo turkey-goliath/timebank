@@ -2,9 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>Time Bank - Cosmic Pulse Evolution</title>
     <style>
+        :root {
+            /* iPhoneのノッチなどを考慮した余白を変数化 */
+            --safe-top: env(safe-area-inset-top, 20px);
+        }
+
         body {
             background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%);
             color: white;
@@ -12,12 +20,21 @@
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; overflow-x: hidden; user-select: none;
+            
+            /* ↓ ダブルタップズームを無効化 */
+            touch-action: manipulation;
+            
+            /* ↓ 上部見切れ防止：セーフエリア分だけ内側に下げる */
+            padding-top: var(--safe-top);
+            box-sizing: border-box;
         }
 
         #starCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
         .alert-toggle {
-            position: absolute; top: 20px; right: 20px; cursor: pointer; width: 30px; height: 30px;
+            /* ↓ セーフエリアを考慮した配置 */
+            position: absolute; top: calc(var(--safe-top) + 10px); right: 20px; 
+            cursor: pointer; width: 30px; height: 30px;
             opacity: 0.4; transition: 0.3s; z-index: 100;
         }
         .alert-toggle.active { opacity: 1; }
@@ -43,7 +60,6 @@
         }
         .alert-active { animation: pulse-red 2s infinite ease-in-out; }
 
-        /* レイアウトの核となる部分 */
         .app-wrapper { 
             display: flex; 
             align-items: center; 
@@ -58,6 +74,8 @@
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
             color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px;
             transition: all 0.2s;
+            /* ↓ ボタン個別にズーム防止を徹底 */
+            touch-action: manipulation;
         }
         .btn-quick:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); color: #fff; }
 
@@ -86,9 +104,17 @@
         .time-sub-m { font-size: 28px; opacity: 0.8; margin-top: 5px; }
         .time-sub-ms { font-size: 18px; opacity: 0.5; font-family: monospace; }
 
-        .bottom-area { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+        .bottom-area { 
+            margin-top: 30px; 
+            display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;
+            /* ↓ 下部もセーフエリア（ホームバー）を考慮 */
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
         .controls { display: flex; align-items: center; gap: 50px; height: 80px; }
-        .btn-start-wrap { text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; }
+        .btn-start-wrap { 
+            text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s;
+            touch-action: manipulation;
+        }
         .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; }
         .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 2px; }
 
@@ -97,25 +123,30 @@
             color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden;
+            touch-action: manipulation;
         }
         .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
 
         .clear-btn {
             background: transparent; border: 1px solid #333; color: #555;
             padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s;
+            touch-action: manipulation;
         }
 
         /* --- スマホ・縦画面向けのレスポンシブ対応 --- */
         @media (max-width: 600px) {
-            body { justify-content: flex-start; padding-top: 40px; }
+            body { 
+                justify-content: flex-start; 
+                /* padding-top は :root の変数で処理されるため固定値は削除 */
+            }
             
             .app-wrapper {
-                flex-direction: column; /* 縦並びに変更 */
-                gap: 20px;
+                flex-direction: column;
+                gap: 15px;
             }
 
             .timer-container {
-                width: 300px; /* タイマーを小さく */
+                width: 300px;
                 height: 300px;
                 order: 1;
             }
@@ -130,33 +161,32 @@
             .status-label { font-size: 14px; }
 
             .quick-controls {
-                flex-direction: row; /* ボタンを横に並べる */
-                flex-wrap: wrap;     /* 2行になってもOKなように */
+                flex-direction: row;
+                flex-wrap: wrap;
                 justify-content: center;
                 gap: 8px;
                 order: 2;
-                width: 90%;
+                width: 95%;
             }
 
             .btn-quick {
-                width: 65px;
+                width: 70px; /* タップしやすいように少し拡大 */
                 padding: 12px 0;
                 font-size: 12px;
             }
 
             .bottom-area {
                 order: 3;
-                margin-top: 20px;
+                margin-top: 15px;
             }
 
             .controls {
-                gap: 20px;
+                gap: 30px;
             }
         }
     </style>
 </head>
 <body>
-
     <canvas id="starCanvas"></canvas>
 
     <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
@@ -206,6 +236,7 @@
     </div>
 
     <script>
+        // (JavaScript部分は元のままで動作します)
         let actualMs = 0;
         let visualMs = 0;
         let timerId = null;
