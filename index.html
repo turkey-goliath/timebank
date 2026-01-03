@@ -85,7 +85,7 @@
         .timer-container { position: relative; width: 450px; height: 450px; display: flex; align-items: center; justify-content: center; }
         #timerCanvas { position: absolute; top: 0; left: 0; z-index: 5; max-width: 100%; height: auto; }
         .timer-info { text-align: center; z-index: 10; pointer-events: none; }
-        .status-label { font-size: 16px; letter-spacing: 5px; height: 24px; margin-bottom: 5px; padding-top: 15px; font-weight: 300; color: white; text-shadow: 0 0 10px rgba(255, 255, 255, 0.6); }
+        .status-label { font-size: 16px; letter-spacing: 2px; height: 24px; margin-bottom: 5px; padding-top: 15px; font-weight: bold; color: white; }
         .pulse-text { animation: soft-pulse 2.5s infinite ease-in-out; }
         @keyframes soft-pulse { 0%, 100% { opacity: 0.2; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
         .time-main { font-size: 52px; font-weight: bold; line-height: 1; letter-spacing: 2px; }
@@ -184,37 +184,34 @@
     </div>
 
     <script>
-        // --- 言語設定データ ---
         const translations = {
             ja: {
-                use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中",
+                use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 devHeader: "開発目的",
-                devDesc: "<span class='desc-highlight'>「誇りを持って学び、全力で遊ぼう」</span>「もうゲームはダメ！」と言われる毎日は、もう終わり。Time Bankは、君の頑張りを正当に評価する新しいルールです。\n\nやりたいことがあったら、自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのツールです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
+                devDesc: "<span class='desc-highlight'>「誇りを持って学び、全力で遊ぼう」</span>Time Bankは、君の頑張りを正当に評価するツールです。\n\nやりたいことがあったら、自分で時間を貯めて、遊ぶときは全力で使う。そんな君のためのルールです。",
                 timeOver: "時間終了", left: "残り", minutes: "分", voiceLang: "ja-JP"
             },
             en: {
-                use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING",
+                use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>\"Play with Passion, Learn with Pride\"</span>The days of being told \"No more games!\" are over. Time Bank is a new rule that gives you the credit you deserve.\n\nWhen you have something you want to do, save your own time and spend it at full power! This is the tool for you.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' managing children's daily life like a game.)",
+                devDesc: "<span class='desc-highlight'>\"Play with Passion, Learn with Pride\"</span>Time Bank is a tool that gives you the credit you deserve.",
                 timeOver: "Time over", left: "", minutes: "minutes left", voiceLang: "en-US"
             }
         };
 
         let currentLang = 'ja';
-
         function setLanguage(lang) {
             currentLang = lang;
             document.getElementById('labelUse').innerText = translations[lang].use;
             document.getElementById('labelCharge').innerText = translations[lang].charge;
             document.getElementById('resetBtn').innerText = translations[lang].reset;
             document.getElementById('devHeader').innerText = translations[lang].devHeader;
-            document.getElementById('devDesc').innerHTML = translations[lang].devDesc; // HTMLタグ反映のためinnerHTML
+            document.getElementById('devDesc').innerHTML = translations[lang].devDesc;
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
-            if (mode) statusLabel.innerText = (mode === 'plus') ? translations[lang].charging : translations[lang].using;
+            updateUI(); // ステータス表示の即時反映
         }
 
-        // --- メニューロジック ---
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('menuOverlay');
@@ -222,7 +219,6 @@
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        // --- タイマー・演出ロジック ---
         let actualMs = 0, visualMs = 0, timerId = null, mode = null, lastTimestamp = 0, isMuted = false, lastAnnouncedSec = null, particles = [], rotationAngle = 0;
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
@@ -274,27 +270,65 @@
         }
 
         class Particle {
-            constructor(type) {
-                this.type = type; this.cx = timerCanvas.width / 2; this.cy = timerCanvas.height / 2;
-                this.color = '#ffffff'; this.angle = Math.random() * Math.PI * 2;
-                if (type === 'in') { this.radius = 220 + Math.random() * 50; this.speed = 0.005 + Math.random() * 0.01; this.radialSpeed = 0.8 + Math.random() * 0.5; }
-                else { this.radius = Math.random() * 20; this.speed = (Math.random() - 0.5) * 0.02; this.radialSpeed = 1.2 + Math.random() * 2; }
-                this.size = Math.random() * 1.8 + 0.5; this.life = 1.0;
+            constructor(type, color = '#ffffff') {
+                this.type = type; 
+                this.cx = timerCanvas.width / 2; 
+                this.cy = timerCanvas.height / 2;
+                this.color = color; 
+                this.angle = Math.random() * Math.PI * 2;
+                this.friction = 1.0;
+                
+                if (type === 'in') { 
+                    this.radius = 220 + Math.random() * 50; 
+                    this.speed = 0.005 + Math.random() * 0.01; 
+                    this.radialSpeed = 0.8 + Math.random() * 0.5; 
+                    this.life = 1.0;
+                } else if (type === 'out') { 
+                    this.radius = Math.random() * 20; 
+                    this.speed = (Math.random() - 0.5) * 0.02; 
+                    this.radialSpeed = 1.2 + Math.random() * 2; 
+                    this.life = 1.0;
+                } else if (type === 'explode') {
+                    this.radius = Math.random() * 10;
+                    this.radialSpeed = 5 + Math.random() * 10;
+                    this.friction = 0.95; 
+                    this.life = 1.0;
+                }
+                this.size = Math.random() * 2.0 + 0.5;
             }
+
             update() {
-                if (this.type === 'in') { this.angle += this.speed; this.radius -= this.radialSpeed; this.life = Math.min(1.0, (this.radius - 40) / 100); }
-                else { this.angle += this.speed; this.radius += this.radialSpeed; this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); }
-                this.x = this.cx + Math.cos(this.angle) * this.radius; this.y = this.cy + Math.sin(this.angle) * this.radius;
-                return this.life > 0.01 && this.radius < 300 && (this.type === 'in' ? this.radius > 30 : true);
+                if (this.type === 'in') { 
+                    this.angle += this.speed; this.radius -= this.radialSpeed; 
+                    this.life = Math.min(1.0, (this.radius - 40) / 100); 
+                } else if (this.type === 'out') { 
+                    this.angle += this.speed; this.radius += this.radialSpeed; 
+                    this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); 
+                } else if (this.type === 'explode') {
+                    this.radialSpeed *= this.friction;
+                    this.radius += this.radialSpeed;
+                    this.life -= 0.015;
+                }
+                this.x = this.cx + Math.cos(this.angle) * this.radius; 
+                this.y = this.cy + Math.sin(this.angle) * this.radius;
+                return this.life > 0.01 && this.radius < 400 && (this.type === 'in' ? this.radius > 30 : true);
             }
-            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.5; ctx.fill(); ctx.globalAlpha = 1.0; }
+
+            draw() { 
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; 
+            }
+        }
+
+        function explode(count, color) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle('explode', color));
+            }
         }
 
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
             mode = newMode;
-            statusLabel.innerText = (mode === 'plus') ? translations[currentLang].charging : translations[currentLang].using;
-            statusLabel.classList.add('pulse-text');
             pauseBtn.classList.add('show');
             lastTimestamp = performance.now();
             const tick = (now) => {
@@ -313,8 +347,11 @@
         function checkCountdown() {
             const currentSec = Math.floor(actualMs / 1000);
             if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
-                if ([600, 300, 60, 0].includes(currentSec)) {
-                    const msg = currentSec === 0 ? translations[currentLang].timeOver : `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
+                if (currentSec === 0) {
+                    explode(150, '#ff3b30');
+                    speak(translations[currentLang].timeOver);
+                } else if ([600, 300, 60].includes(currentSec)) {
+                    const msg = `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
                     speak(msg);
                 }
                 lastAnnouncedSec = currentSec;
@@ -323,10 +360,13 @@
 
         function pauseTimer() {
             cancelAnimationFrame(timerId); timerId = null; mode = null;
-            statusLabel.innerText = ""; statusLabel.classList.remove('pulse-text'); pauseBtn.classList.remove('show');
+            pauseBtn.classList.remove('show');
         }
 
-        function clearTime() { pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; }
+        function clearTime() { 
+            if (Math.abs(actualMs) > 1000) explode(100, '#ffffff');
+            pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
+        }
 
         function addTime(amount) {
             actualMs += amount * 1000;
@@ -347,7 +387,28 @@
             document.getElementById('timeMain').innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             document.getElementById('timeSubM').innerText = String(s).padStart(2, '0');
             document.getElementById('timeSubMs').innerText = String(ms).padStart(2, '0');
+            
             const isNegative = actualMs < 0;
+            const label = document.getElementById('statusLabel');
+
+            // --- ステータスラベルのロジック修正 ---
+            if (isNegative) {
+                label.innerText = translations[currentLang].shortage;
+                label.style.color = '#ff3b30';
+                label.classList.add('pulse-text');
+            } else if (mode === 'plus') {
+                label.innerText = translations[currentLang].charging;
+                label.style.color = 'white';
+                label.classList.add('pulse-text');
+            } else if (mode === 'minus') {
+                label.innerText = translations[currentLang].using;
+                label.style.color = 'white';
+                label.classList.add('pulse-text');
+            } else {
+                label.innerText = "";
+                label.classList.remove('pulse-text');
+            }
+
             document.getElementById('alertOverlay').classList.toggle('alert-active', isNegative);
             document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = isNegative ? '#ff3b30' : 'white');
         }
@@ -356,7 +417,7 @@
             ctx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
             let cx = timerCanvas.width / 2, cy = timerCanvas.height / 2;
             const time = performance.now();
-            const pulseRate = (mode === 'minus') ? 250 : 800;
+            const pulseRate = (actualMs < 0) ? 250 : 800;
             const pulse = (Math.sin(time / pulseRate) + 1) / 2;
             const totalRings = 6;
             for (let i = 0; i < totalRings; i++) {
@@ -382,7 +443,7 @@
             }
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
-        setLanguage('ja'); // 初期化
+        setLanguage('ja');
         animate();
     </script>
 </body>
