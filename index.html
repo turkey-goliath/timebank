@@ -9,8 +9,8 @@
     <title>Time Bank - Cosmic Pulse Evolution</title>
     <style>
         :root {
-            /* iPhoneのノッチなどを考慮した余白を変数化 */
             --safe-top: env(safe-area-inset-top, 20px);
+            --accent-color: #00f2ff;
         }
 
         body {
@@ -20,20 +20,48 @@
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; overflow-x: hidden; user-select: none;
-            
-            /* ↓ ダブルタップズームを無効化 */
             touch-action: manipulation;
-            
-            /* ↓ 上部見切れ防止：セーフエリア分だけ内側に下げる */
             padding-top: var(--safe-top);
             box-sizing: border-box;
         }
 
         #starCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
+        /* --- Header & Logo --- */
+        header {
+            position: absolute; top: var(--safe-top); width: 100%;
+            display: flex; align-items: center; justify-content: center; height: 60px; z-index: 100;
+        }
+        .logo { height: 28px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+
+        /* --- Hamburger Menu --- */
+        .menu-trigger {
+            position: absolute; left: 20px; cursor: pointer;
+            width: 30px; height: 30px; display: flex; flex-direction: column; justify-content: center; gap: 6px;
+        }
+        .menu-trigger span { width: 100%; height: 2px; background: white; transition: 0.3s; }
+        
+        .side-menu {
+            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+            background: rgba(10, 10, 26, 0.95); backdrop-filter: blur(15px);
+            z-index: 200; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 80px 30px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
+        .menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; z-index: 150;
+        }
+        
+        .menu-section { margin-bottom: 40px; }
+        .menu-section h3 { font-size: 12px; color: var(--accent-color); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; opacity: 0.8; }
+        .menu-item { color: #ccc; text-decoration: none; display: block; padding: 10px 0; font-size: 15px; cursor: pointer; }
+        .menu-item:hover { color: white; }
+        .desc-text { font-size: 13px; line-height: 1.6; color: #888; }
+
+        /* --- Elements --- */
         .alert-toggle {
-            /* ↓ セーフエリアを考慮した配置 */
-            position: absolute; top: calc(var(--safe-top) + 10px); right: 20px; 
+            position: absolute; top: 15px; right: 20px; 
             cursor: pointer; width: 30px; height: 30px;
             opacity: 0.4; transition: 0.3s; z-index: 100;
         }
@@ -60,138 +88,75 @@
         }
         .alert-active { animation: pulse-red 2s infinite ease-in-out; }
 
-        .app-wrapper { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            gap: 20px; 
-            width: 100%;
-            max-width: 800px;
-        }
-
+        .app-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 800px; margin-top: 40px; }
         .quick-controls { display: flex; flex-direction: column; gap: 12px; }
         .btn-quick {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
             color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px;
-            transition: all 0.2s;
-            /* ↓ ボタン個別にズーム防止を徹底 */
-            touch-action: manipulation;
+            transition: all 0.2s; touch-action: manipulation;
         }
         .btn-quick:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); color: #fff; }
 
-        .timer-container {
-            position: relative; 
-            width: 450px; height: 450px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
+        .timer-container { position: relative; width: 450px; height: 450px; display: flex; align-items: center; justify-content: center; }
         #timerCanvas { position: absolute; top: 0; left: 0; z-index: 5; max-width: 100%; height: auto; }
-
         .timer-info { text-align: center; z-index: 10; pointer-events: none; }
-        
-        .status-label {
-            font-size: 16px; letter-spacing: 5px; height: 24px; margin-bottom: 5px;
-            padding-top: 15px; font-weight: 300; color: white;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-        }
+        .status-label { font-size: 16px; letter-spacing: 5px; height: 24px; margin-bottom: 5px; padding-top: 15px; font-weight: 300; color: white; text-shadow: 0 0 10px rgba(255, 255, 255, 0.6); }
         .pulse-text { animation: soft-pulse 2.5s infinite ease-in-out; }
-        @keyframes soft-pulse {
-            0%, 100% { opacity: 0.2; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-
+        @keyframes soft-pulse { 0%, 100% { opacity: 0.2; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
         .time-main { font-size: 52px; font-weight: bold; line-height: 1; letter-spacing: 2px; }
         .time-sub-m { font-size: 28px; opacity: 0.8; margin-top: 5px; }
         .time-sub-ms { font-size: 18px; opacity: 0.5; font-family: monospace; }
 
-        .bottom-area { 
-            margin-top: 30px; 
-            display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;
-            /* ↓ 下部もセーフエリア（ホームバー）を考慮 */
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-        }
+        .bottom-area { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; padding-bottom: env(safe-area-inset-bottom, 20px); }
         .controls { display: flex; align-items: center; gap: 50px; height: 80px; }
-        .btn-start-wrap { 
-            text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s;
-            touch-action: manipulation;
-        }
+        .btn-start-wrap { text-align: center; width: 65px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; touch-action: manipulation; }
         .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; }
         .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 2px; }
-
-        .btn-pause {
-            width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%;
-            color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden;
-            touch-action: manipulation;
-        }
+        .btn-pause { width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden; touch-action: manipulation; }
         .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
+        .clear-btn { background: transparent; border: 1px solid #333; color: #555; padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s; touch-action: manipulation; }
 
-        .clear-btn {
-            background: transparent; border: 1px solid #333; color: #555;
-            padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s;
-            touch-action: manipulation;
-        }
-
-        /* --- スマホ・縦画面向けのレスポンシブ対応 --- */
         @media (max-width: 600px) {
-            body { 
-                justify-content: flex-start; 
-                /* padding-top は :root の変数で処理されるため固定値は削除 */
-            }
-            
-            .app-wrapper {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .timer-container {
-                width: 300px;
-                height: 300px;
-                order: 1;
-            }
-
-            #timerCanvas {
-                width: 300px;
-                height: 300px;
-            }
-
+            body { justify-content: flex-start; }
+            header { height: 50px; }
+            .logo { height: 22px; }
+            .app-wrapper { flex-direction: column; gap: 15px; margin-top: 60px; }
+            .timer-container { width: 300px; height: 300px; order: 1; }
+            #timerCanvas { width: 300px; height: 300px; }
             .time-main { font-size: 36px; }
-            .time-sub-m { font-size: 20px; }
-            .status-label { font-size: 14px; }
-
-            .quick-controls {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 8px;
-                order: 2;
-                width: 95%;
-            }
-
-            .btn-quick {
-                width: 70px; /* タップしやすいように少し拡大 */
-                padding: 12px 0;
-                font-size: 12px;
-            }
-
-            .bottom-area {
-                order: 3;
-                margin-top: 15px;
-            }
-
-            .controls {
-                gap: 30px;
-            }
+            .quick-controls { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; order: 2; width: 95%; }
+            .btn-quick { width: 70px; padding: 12px 0; font-size: 12px; }
+            .bottom-area { order: 3; margin-top: 15px; }
         }
     </style>
 </head>
 <body>
     <canvas id="starCanvas"></canvas>
 
-    <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
-        <div class="bell-icon"></div>
-        <div class="mute-line"></div>
+    <header>
+        <div class="menu-trigger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </div>
+        <img src="timebank-logo.png" alt="Time Bank" class="logo">
+        <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
+            <div class="bell-icon"></div>
+            <div class="mute-line"></div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-section">
+            <h3>Language</h3>
+            <div class="menu-item">日本語</div>
+            <div class="menu-item" style="opacity: 0.4;">English (Soon)</div>
+        </div>
+        <div class="menu-section">
+            <h3>Development</h3>
+            <p class="desc-text">
+                Time Bankは、時間の「貯金」と「消費」を視覚化することで、生活リズムの改善を目的としたプロジェクトです。
+            </p>
+        </div>
     </div>
 
     <div id="alertOverlay"></div>
@@ -236,38 +201,27 @@
     </div>
 
     <script>
-        // (JavaScript部分は元のままで動作します)
-        let actualMs = 0;
-        let visualMs = 0;
-        let timerId = null;
-        let mode = null;
-        let lastTimestamp = 0;
-        let isMuted = false;
-        let lastAnnouncedSec = null;
-        let particles = [];
-        let rotationAngle = 0;
+        // --- Menu Logic ---
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('open');
+            overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
+        }
 
-        const timerCanvas = document.getElementById('timerCanvas');
-        const ctx = timerCanvas.getContext('2d');
-        const starCanvas = document.getElementById('starCanvas');
-        const sctx = starCanvas.getContext('2d');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const statusLabel = document.getElementById('statusLabel');
-
-        const cyberGradients = [
-            ['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#00a2ff', '#0022ff'],
-            ['#7000ff', '#4b0082'], ['#b000ff', '#7000ff'], ['#ff00f2', '#b000ff']
-        ];
-
+        // --- Timer Core Logic ---
+        let actualMs = 0, visualMs = 0, timerId = null, mode = null, lastTimestamp = 0, isMuted = false, lastAnnouncedSec = null, particles = [], rotationAngle = 0;
+        const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
+        const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
+        const pauseBtn = document.getElementById('pauseBtn'), statusLabel = document.getElementById('statusLabel');
+        const cyberGradients = [['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#7000ff', '#4b0082'], ['#ff00f2', '#b000ff']];
         let stars = [];
+
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
             stars = [];
             for (let i = 0; i < 150; i++) {
-                stars.push({
-                    x: Math.random() * starCanvas.width, y: Math.random() * starCanvas.height,
-                    size: Math.random() * 1.5, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, opacity: Math.random()
-                });
+                stars.push({ x: Math.random() * starCanvas.width, y: Math.random() * starCanvas.height, size: Math.random() * 1.5, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, opacity: Math.random() });
             }
         }
         window.addEventListener('resize', initStars); initStars();
@@ -285,46 +239,25 @@
 
         class Particle {
             constructor(type) {
-                this.type = type;
-                this.cx = timerCanvas.width / 2; this.cy = timerCanvas.height / 2;
-                this.color = '#ffffff';
-                if (type === 'in') {
-                    this.angle = Math.random() * Math.PI * 2;
-                    this.radius = 220 + Math.random() * 50;
-                    this.speed = 0.005 + Math.random() * 0.01;
-                    this.radialSpeed = 0.8 + Math.random() * 0.5;
-                } else {
-                    this.angle = Math.random() * Math.PI * 2;
-                    this.radius = Math.random() * 20;
-                    this.speed = (Math.random() - 0.5) * 0.02;
-                    this.radialSpeed = 1.2 + Math.random() * 2; 
-                }
-                this.size = Math.random() * 1.8 + 0.5;
-                this.life = 1.0;
+                this.type = type; this.cx = timerCanvas.width / 2; this.cy = timerCanvas.height / 2;
+                this.color = '#ffffff'; this.angle = Math.random() * Math.PI * 2;
+                if (type === 'in') { this.radius = 220 + Math.random() * 50; this.speed = 0.005 + Math.random() * 0.01; this.radialSpeed = 0.8 + Math.random() * 0.5; }
+                else { this.radius = Math.random() * 20; this.speed = (Math.random() - 0.5) * 0.02; this.radialSpeed = 1.2 + Math.random() * 2; }
+                this.size = Math.random() * 1.8 + 0.5; this.life = 1.0;
             }
             update() {
-                if (this.type === 'in') {
-                    this.angle += this.speed; this.radius -= this.radialSpeed;
-                    this.life = Math.min(1.0, (this.radius - 40) / 100);
-                } else {
-                    this.angle += this.speed; this.radius += this.radialSpeed;
-                    this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250);
-                }
-                this.x = this.cx + Math.cos(this.angle) * this.radius;
-                this.y = this.cy + Math.sin(this.angle) * this.radius;
+                if (this.type === 'in') { this.angle += this.speed; this.radius -= this.radialSpeed; this.life = Math.min(1.0, (this.radius - 40) / 100); }
+                else { this.angle += this.speed; this.radius += this.radialSpeed; this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); }
+                this.x = this.cx + Math.cos(this.angle) * this.radius; this.y = this.cy + Math.sin(this.angle) * this.radius;
                 return this.life > 0.01 && this.radius < 300 && (this.type === 'in' ? this.radius > 30 : true);
             }
-            draw() {
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.5;
-                ctx.fill(); ctx.globalAlpha = 1.0;
-            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.5; ctx.fill(); ctx.globalAlpha = 1.0; }
         }
 
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
             mode = newMode;
-            statusLabel.innerText = (mode === 'plus') ? "チャージ中" : "使用中";
+            statusLabel.innerText = (mode === 'plus') ? "CHARGING" : "USING";
             statusLabel.classList.add('pulse-text');
             pauseBtn.classList.add('show');
             lastTimestamp = performance.now();
@@ -371,8 +304,7 @@
 
         function updateUI() {
             const absMs = Math.abs(Math.round(visualMs));
-            const h = Math.floor(absMs / 3600000); const m = Math.floor((absMs % 3600000) / 60000);
-            const s = Math.floor((absMs % 60000) / 1000); const ms = Math.floor((absMs % 1000) / 10);
+            const h = Math.floor(absMs / 3600000), m = Math.floor((absMs % 3600000) / 60000), s = Math.floor((absMs % 60000) / 1000), ms = Math.floor((absMs % 1000) / 10);
             document.getElementById('timeMain').innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             document.getElementById('timeSubM').innerText = String(s).padStart(2, '0');
             document.getElementById('timeSubMs').innerText = String(ms).padStart(2, '0');
@@ -385,38 +317,26 @@
             ctx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
             let cx = timerCanvas.width / 2, cy = timerCanvas.height / 2;
             const time = performance.now();
-            
             const pulseRate = (mode === 'minus') ? 250 : 800;
             const pulse = (Math.sin(time / pulseRate) + 1) / 2;
-            
             const totalRings = 6;
             for (let i = 0; i < totalRings; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, 125 + (i * 18), 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(255, 255, 255, 0.03)`; ctx.stroke();
             }
-
-            const totalSeconds = visualMs / 1000;
-            const absSec = Math.abs(totalSeconds);
+            const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
             const activeGradients = (totalSeconds >= 0) ? cyberGradients : [['#FF4D4D', '#B30000']];
-
             for (let i = 0; i < totalRings; i++) {
-                const radius = 125 + (i * 18);
-                const hourInSec = 3600;
+                const radius = 125 + (i * 18), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
                 if (progress > 0) {
                     ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotationAngle * (1 + i * 0.15));
                     ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
-                    
-                    const baseWidth = (mode === 'minus') ? 4.0 : 3.0;
-                    const widthVariation = pulse * (mode === 'minus' ? 3.0 : 2.0);
-                    ctx.lineWidth = baseWidth + widthVariation;
-                    
+                    ctx.lineWidth = ((mode === 'minus') ? 4.0 : 3.0) + (pulse * (mode === 'minus' ? 3.0 : 2.0));
                     ctx.shadowBlur = (mode === 'minus' ? 12 : 8) + (pulse * 12);
                     ctx.shadowColor = activeGradients[i % activeGradients.length][0];
                     ctx.strokeStyle = activeGradients[i % activeGradients.length][0];
-                    
-                    ctx.lineCap = 'round';
-                    ctx.stroke(); ctx.restore();
+                    ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
                 }
             }
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
