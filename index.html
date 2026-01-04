@@ -307,6 +307,7 @@
         let actualMs = 0, visualMs = 0, timerId = null, mode = null;
         let lastAnnouncedSec = null, isMuted = false;
         let particles = [], rotationAngle = 0;
+        let baseMs = 0, startTime = 0; // スコープを広げて外部から調整可能にする
         
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
@@ -421,7 +422,8 @@
             const state = {
                 actualMs,
                 mode,
-                startTime: mode ? Date.now() : null
+                startTime: mode ? startTime : null, // 現在の計測開始時間を保存
+                baseMs: mode ? baseMs : actualMs    // 計測中の基準時間、または静止時の時間を保存
             };
             localStorage.setItem('timeBankState_v2', JSON.stringify(state));
         }
@@ -432,20 +434,24 @@
                 const state = JSON.parse(saved);
                 actualMs = state.actualMs;
                 if (state.mode && state.startTime) {
-                    const elapsed = Date.now() - state.startTime;
-                    actualMs += (state.mode === 'plus' ? elapsed : -elapsed);
-                    startTimer(state.mode);
+                    baseMs = state.baseMs || actualMs;
+                    startTime = state.startTime;
+                    const elapsed = Date.now() - startTime;
+                    actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed);
+                    startTimer(state.mode, true);
                 }
             }
         }
 
         // --- タイマー制御 ---
-        function startTimer(newMode) {
+        function startTimer(newMode, isFromLoad = false) {
             if (timerId) cancelAnimationFrame(timerId);
             
             mode = newMode;
-            const baseMs = actualMs;
-            const startTime = Date.now();
+            if (!isFromLoad) {
+                baseMs = actualMs;
+                startTime = Date.now();
+            }
             
             pauseBtn.classList.add('show');
             saveState();
@@ -465,7 +471,7 @@
         }
 
         function pauseTimer() {
-            cancelAnimationFrame(timerId);
+            if(timerId) cancelAnimationFrame(timerId);
             timerId = null;
             mode = null;
             pauseBtn.classList.remove('show');
@@ -480,7 +486,14 @@
         }
 
         function addTime(amount) {
-            actualMs += amount * 1000;
+            const msToAdd = amount * 1000;
+            actualMs += msToAdd;
+            
+            // 重要：タイマー作動中の場合は、基準となる baseMs も書き換える
+            if (mode !== null) {
+                baseMs += msToAdd;
+            }
+            
             saveState();
             for(let i=0; i<15; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out'));
         }
@@ -491,22 +504,17 @@
         function checkCountdown() {
             const currentSec = Math.floor(actualMs / 1000);
             
-            // モードが「使う(minus)」の時だけ秒数案内をする
             if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
-                
-                // 0秒になった時
                 if (currentSec === 0) {
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
                     sendNotification("TIME BANK", translations[currentLang].timeOverMsg);
                 } 
-                // 5分前 (300秒) または 1分前 (60秒) の時
                 else if (currentSec === 300 || currentSec === 60) {
                     const mins = currentSec / 60;
                     const msg = translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes;
                     speak(msg);
                 }
-                
                 lastAnnouncedSec = currentSec;
             }
         }
