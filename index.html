@@ -138,7 +138,7 @@
         </div>
         <div class="menu-section">
             <h3 id="devHeader">DEVELOPMENT</h3>
-            <p id="devDesc" class="desc-text"></p>
+            <div id="devDesc" class="desc-text"></div>
         </div>
     </div>
 
@@ -188,13 +188,13 @@
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>Time Bankは、君の頑張りを正当に評価するタイムツールです。\n\nやりたいことがあったら、読書や勉強をして自分で時間を貯めて、遊ぶときは思いきって時間を使う。遊びと学びのバランスをとりたい子どもたちにおすすめです。\n\n（Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのプロジェクトです。）",
+                devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>\n\nTime Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
                 timeOver: "時間終了", left: "残り", minutes: "分", voiceLang: "ja-JP"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 devHeader: "DEVELOPMENT",
-                devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>Time Bank is a time management tool that fairly rewards your efforts.\n\nWhen you want to do something fun, save up time by reading or studying, then spend it boldly when it's time to play. Perfect for kids who want to balance learning and playing.\n\n(Time Bank is a project to visualize time as 'saving' and 'spending,' helping children manage and improve their daily activities like a game.)",
+                devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>\n\nTime Bank is a tool to visualize time as 'saving' and 'spending,' helping children manage and improve their daily activities like a game.",
                 timeOver: "Time over", left: "", minutes: "minutes left", voiceLang: "en-US"
             }
         };
@@ -227,18 +227,6 @@
         
         let stars = [];
         let shootingStars = [];
-
-        // --- 無音再生ハック用の設定 ---
-        const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A');
-        silentAudio.loop = true;
-
-        function keepAlive(play) {
-            if (play) {
-                silentAudio.play().catch(e => console.log("Silent audio failed:", e));
-            } else {
-                silentAudio.pause();
-            }
-        }
 
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
@@ -346,10 +334,7 @@
 
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
-            
             requestNotificationPermission();
-            keepAlive(true); // ★ブラウザを眠らせないようにする
-
             mode = newMode;
             pauseBtn.classList.add('show');
             lastTimestamp = performance.now();
@@ -372,14 +357,9 @@
                 if (currentSec === 0) {
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
-
                     if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("TIME BANK", {
-                            body: translations[currentLang].timeOver,
-                            silent: false
-                        });
+                        new Notification("TIME BANK", { body: translations[currentLang].timeOver, silent: false });
                     }
-
                 } else if ([600, 300, 60].includes(currentSec)) {
                     const msg = `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
                     speak(msg);
@@ -391,7 +371,6 @@
         function pauseTimer() {
             cancelAnimationFrame(timerId); timerId = null; mode = null;
             pauseBtn.classList.remove('show');
-            keepAlive(false); // ★タイマーを止めたら解除
         }
 
         function clearTime() { 
