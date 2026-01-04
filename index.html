@@ -51,44 +51,37 @@
             background: rgba(10, 10, 26, 0.95); backdrop-filter: blur(15px);
             z-index: 200; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             padding: 80px 30px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.1);
+            overflow-y: auto;
         }
         .side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
         .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 150; }
         
-        .menu-section { margin-bottom: 40px; }
-        .menu-section h3 { font-size: 12px; color: var(--accent-color); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; opacity: 0.8; }
+        .menu-section { margin-bottom: 30px; }
+        .menu-section h3 { font-size: 11px; color: var(--accent-color); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; opacity: 0.8; }
         .menu-item { color: #888; text-decoration: none; display: block; padding: 10px 0; font-size: 15px; cursor: pointer; transition: 0.3s; }
         .menu-item.active { color: white; font-weight: bold; }
         .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
         .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 15px; font-size: 15px; }
 
-        #howToModal {
+        /* Modals */
+        .custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             z-index: 9999;
             display: none; align-items: center; justify-content: center;
-            transition: 0.3s;
         }
         .modal-content {
             background: rgba(10, 10, 26, 0.98);
-            width: 85%; max-width: 400px; padding: 30px;
+            width: 85%; max-width: 420px; padding: 30px;
             border-radius: 20px; border: 2px solid var(--accent-color);
             text-align: center; 
             box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(0, 242, 255, 0.3);
-            transform: scale(0.8); opacity: 0;
-            animation: modalWarp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-height: 85vh; overflow-y: auto;
+            box-sizing: border-box;
         }
 
-        @keyframes modalWarp {
-            0% { transform: scale(0.5) translateY(20px); opacity: 0; filter: brightness(2); }
-            100% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
-        }
-
-        .modal-step { margin-bottom: 25px; }
+        .modal-step { margin-bottom: 25px; text-align: center; }
         .step-num { color: var(--accent-color); font-weight: bold; font-size: 12px; display: block; margin-bottom: 5px; letter-spacing: 2px; }
         .step-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px; text-shadow: 0 0 10px var(--accent-color); }
         .step-desc { font-size: 13px; color: #ccc; line-height: 1.5; }
@@ -100,6 +93,7 @@
         }
         .close-btn:active { background: var(--accent-color); color: #000; transform: scale(0.9); }
 
+        /* UI elements */
         .alert-toggle { position: absolute; top: 15px; right: 20px; cursor: pointer; width: 30px; height: 30px; opacity: 0.4; transition: 0.3s; z-index: 100; }
         .alert-toggle.active { opacity: 1; }
         .bell-icon { width: 20px; height: 20px; border: 2px solid white; border-radius: 10px 10px 2px 2px; position: relative; margin: 2px auto; }
@@ -176,7 +170,11 @@
         </div>
         <div class="menu-section">
             <h3 id="howToHeader">GUIDE</h3>
-            <div class="menu-item" onclick="showHowTo()">使い方を見る</div>
+            <div id="btnGuide" class="menu-item" onclick="showHowTo()">使い方を見る</div>
+        </div>
+        <div class="menu-section">
+            <h3 id="parentsHeader">FOR PARENTS</h3>
+            <div id="btnParents" class="menu-item" onclick="showParentsModal()">保護者の方へ</div>
         </div>
         <div class="menu-section">
             <h3 id="devHeader">DEVELOPMENT</h3>
@@ -184,7 +182,7 @@
         </div>
     </div>
 
-    <div id="howToModal">
+    <div id="howToModal" class="custom-modal">
         <div class="modal-content">
             <div class="modal-step">
                 <span class="step-num">MISSION 01</span>
@@ -202,6 +200,15 @@
                 <p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p>
             </div>
             <button class="close-btn" onclick="closeHowTo()">Warp Start</button>
+        </div>
+    </div>
+
+    <div id="parentsModal" class="custom-modal">
+        <div class="modal-content" style="text-align: left;">
+            <div id="parentsContent"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="close-btn" onclick="closeParentsModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -263,14 +270,44 @@
         const translations = {
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
-                devHeader: "DEVELOPMENT",
+                devHeader: "DEVELOPMENT", guideBtn: "使い方を見る", parentsHeader: "FOR PARENTS", parentsBtn: "保護者の方へ",
                 devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>\n\nTime Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
+                parentsBody: `
+                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:15px; text-align:center;">制作の想い</h2>
+                    <p style="font-size:13px; line-height:1.6; color:#aaa; margin-bottom:20px;">
+                        このアプリは、ある親の「子どもにゲームを思う存分楽しんでほしい、でもバランスも大切にしてほしい」という葛藤から生まれました。<br><br>
+                        Time Bankは、時間を「貯める（投資）」と「使う（消費）」という<b>銀行の仕組み</b>で視覚化し、子ども自身が自律的に動くきっかけを作るためのツールです。
+                    </p>
+                    <h3 style="color:var(--accent-color); font-size:15px; margin-bottom:10px;">💡 効果的な使い方のヒント</h3>
+                    <div style="font-size:13px; line-height:1.6; color:#ccc;">
+                        <b>1. 「1:1の法則」から始める</b><br>
+                        「30分勉強したら30分遊べる」というシンプルな比率からスタート。等価交換の感覚がタイムマネジメントの基礎になります。<br><br>
+                        <b>2. 「前借り」を許容する</b><br>
+                        時間がマイナスになってもOK。「未来の自分への借金」として、後でチャージする責任感を育てます。<br><br>
+                        <b>3. 成果を一緒に喜ぶ</b><br>
+                        貯まった数字を「宇宙エネルギーがパンパンだね！」とポジティブに評価してあげてください。
+                    </div>`,
                 timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
-                devHeader: "DEVELOPMENT",
+                devHeader: "DEVELOPMENT", guideBtn: "GUIDE", parentsHeader: "FOR PARENTS", parentsBtn: "For Parents",
                 devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>\n\nTime Bank is a tool to visualize time as 'saving' and 'spending,' helping children manage and improve their daily activities like a game.",
+                parentsBody: `
+                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:15px; text-align:center;">Our Vision</h2>
+                    <p style="font-size:13px; line-height:1.6; color:#aaa; margin-bottom:20px;">
+                        Time Bank was born from a parent's desire: "I want my child to enjoy games to the fullest, but also value balance."<br><br>
+                        By visualizing time through "Saving" and "Spending," this tool encourages children to manage their own time like a game.
+                    </p>
+                    <h3 style="color:var(--accent-color); font-size:15px; margin-bottom:10px;">💡 Usage Tips</h3>
+                    <div style="font-size:13px; line-height:1.6; color:#ccc;">
+                        <b>1. Start with the "1:1 Rule"</b><br>
+                        Example: 30 mins of study = 30 mins of play. This builds the foundation of time management.<br><br>
+                        <b>2. Allow "Overdrafts"</b><br>
+                        It's okay to go into the negative. Treat it as a "loan from the future self" to teach responsibility.<br><br>
+                        <b>3. Celebrate the Numbers</b><br>
+                        Praise them when the bank is full! Visualizing effort leads to a sense of accomplishment.
+                    </div>`,
                 timeOver: "Time over", timeOverMsg: "Time is up!", left: "", minutes: "minutes left", voiceLang: "en-US"
             }
         };
@@ -283,18 +320,29 @@
             document.getElementById('resetBtn').innerText = translations[lang].reset;
             document.getElementById('devHeader').innerText = translations[lang].devHeader;
             document.getElementById('devDesc').innerHTML = translations[lang].devDesc;
+            document.getElementById('howToHeader').innerText = translations[lang].guideBtn === "GUIDE" ? "GUIDE" : "GUIDE"; // Consistency
+            document.getElementById('btnGuide').innerText = translations[lang].guideBtn;
+            document.getElementById('parentsHeader').innerText = translations[lang].parentsHeader;
+            document.getElementById('btnParents').innerText = translations[lang].parentsBtn;
+            document.getElementById('parentsContent').innerHTML = translations[lang].parentsBody;
+            
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
             updateUI();
         }
 
+        // Modal Controls
         function showHowTo() {
             document.getElementById('howToModal').style.display = 'flex';
             if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
         }
-        function closeHowTo() {
-            document.getElementById('howToModal').style.display = 'none';
+        function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
+        
+        function showParentsModal() {
+            document.getElementById('parentsModal').style.display = 'flex';
+            if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
         }
+        function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
 
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
@@ -307,7 +355,7 @@
         let actualMs = 0, visualMs = 0, timerId = null, mode = null;
         let lastAnnouncedSec = null, isMuted = false;
         let particles = [], rotationAngle = 0;
-        let baseMs = 0, startTime = 0; // スコープを広げて外部から調整可能にする
+        let baseMs = 0, startTime = 0;
         
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
@@ -317,7 +365,6 @@
         let stars = [];
         let shootingStars = [];
 
-        // --- 星空演出 ---
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
             stars = [];
@@ -359,72 +406,29 @@
             });
         }
 
-        // --- パーティクル演出 ---
         class Particle {
             constructor(type, color = '#ffffff') {
-                this.type = type; 
-                this.cx = timerCanvas.width / 2; 
-                this.cy = timerCanvas.height / 2;
-                this.color = color; 
-                this.angle = Math.random() * Math.PI * 2;
-                this.friction = 1.0;
-                
-                if (type === 'in') { 
-                    this.radius = 220 + Math.random() * 50; 
-                    this.speed = 0.005 + Math.random() * 0.01; 
-                    this.radialSpeed = 0.8 + Math.random() * 0.5; 
-                    this.life = 1.0;
-                } else if (type === 'out') { 
-                    this.radius = Math.random() * 20; 
-                    this.speed = (Math.random() - 0.5) * 0.02; 
-                    this.radialSpeed = 1.2 + Math.random() * 2; 
-                    this.life = 1.0;
-                } else if (type === 'explode') {
-                    this.radius = Math.random() * 10;
-                    this.radialSpeed = 5 + Math.random() * 10;
-                    this.friction = 0.95; 
-                    this.life = 1.0;
-                }
+                this.type = type; this.cx = timerCanvas.width / 2; this.cy = timerCanvas.height / 2;
+                this.color = color; this.angle = Math.random() * Math.PI * 2; this.friction = 1.0;
+                if (type === 'in') { this.radius = 220 + Math.random() * 50; this.speed = 0.005 + Math.random() * 0.01; this.radialSpeed = 0.8 + Math.random() * 0.5; this.life = 1.0; }
+                else if (type === 'out') { this.radius = Math.random() * 20; this.speed = (Math.random() - 0.5) * 0.02; this.radialSpeed = 1.2 + Math.random() * 2; this.life = 1.0; }
+                else if (type === 'explode') { this.radius = Math.random() * 10; this.radialSpeed = 5 + Math.random() * 10; this.friction = 0.95; this.life = 1.0; }
                 this.size = Math.random() * 2.0 + 0.5;
             }
-
             update() {
-                if (this.type === 'in') { 
-                    this.angle += this.speed; this.radius -= this.radialSpeed; 
-                    this.life = Math.min(1.0, (this.radius - 40) / 100); 
-                } else if (this.type === 'out') { 
-                    this.angle += this.speed; this.radius += this.radialSpeed; 
-                    this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); 
-                } else if (this.type === 'explode') {
-                    this.radialSpeed *= this.friction;
-                    this.radius += this.radialSpeed;
-                    this.life -= 0.015;
-                }
-                this.x = this.cx + Math.cos(this.angle) * this.radius; 
-                this.y = this.cy + Math.sin(this.angle) * this.radius;
+                if (this.type === 'in') { this.angle += this.speed; this.radius -= this.radialSpeed; this.life = Math.min(1.0, (this.radius - 40) / 100); }
+                else if (this.type === 'out') { this.angle += this.speed; this.radius += this.radialSpeed; this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); }
+                else if (this.type === 'explode') { this.radialSpeed *= this.friction; this.radius += this.radialSpeed; this.life -= 0.015; }
+                this.x = this.cx + Math.cos(this.angle) * this.radius; this.y = this.cy + Math.sin(this.angle) * this.radius;
                 return this.life > 0.01 && this.radius < 400 && (this.type === 'in' ? this.radius > 30 : true);
             }
-
-            draw() { 
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; 
-            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; }
         }
 
-        function explode(count, color) {
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle('explode', color));
-            }
-        }
+        function explode(count, color) { for (let i = 0; i < count; i++) { particles.push(new Particle('explode', color)); } }
 
-        // --- 状態保存 (LocalStorage) ---
         function saveState() {
-            const state = {
-                actualMs,
-                mode,
-                startTime: mode ? startTime : null, // 現在の計測開始時間を保存
-                baseMs: mode ? baseMs : actualMs    // 計測中の基準時間、または静止時の時間を保存
-            };
+            const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs };
             localStorage.setItem('timeBankState_v2', JSON.stringify(state));
         }
 
@@ -443,27 +447,18 @@
             }
         }
 
-        // --- タイマー制御 ---
         function startTimer(newMode, isFromLoad = false) {
             if (timerId) cancelAnimationFrame(timerId);
-            
             mode = newMode;
-            if (!isFromLoad) {
-                baseMs = actualMs;
-                startTime = Date.now();
-            }
-            
+            if (!isFromLoad) { baseMs = actualMs; startTime = Date.now(); }
             pauseBtn.classList.add('show');
             saveState();
-
             const tick = () => {
                 const now = Date.now();
                 const elapsed = now - startTime;
                 actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed);
-
                 if (mode === 'plus' && Math.random() > 0.3) particles.push(new Particle('in'));
                 else if (mode === 'minus' && Math.random() > 0.35) particles.push(new Particle('out'));
-                
                 checkCountdown();
                 timerId = requestAnimationFrame(tick);
             };
@@ -472,28 +467,21 @@
 
         function pauseTimer() {
             if(timerId) cancelAnimationFrame(timerId);
-            timerId = null;
-            mode = null;
+            timerId = null; mode = null;
             pauseBtn.classList.remove('show');
             saveState();
         }
 
         function clearTime() { 
             if (Math.abs(actualMs) > 1000) explode(100, '#ffffff');
-            pauseTimer();
-            actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
+            pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
             localStorage.removeItem('timeBankState_v2');
         }
 
         function addTime(amount) {
             const msToAdd = amount * 1000;
             actualMs += msToAdd;
-            
-            // 重要：タイマー作動中の場合は、基準となる baseMs も書き換える
-            if (mode !== null) {
-                baseMs += msToAdd;
-            }
-            
+            if (mode !== null) { baseMs += msToAdd; }
             saveState();
             for(let i=0; i<15; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out'));
         }
@@ -503,7 +491,6 @@
 
         function checkCountdown() {
             const currentSec = Math.floor(actualMs / 1000);
-            
             if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
                 if (currentSec === 0) {
                     explode(150, '#ff3b30');
@@ -519,14 +506,11 @@
             }
         }
 
-        // --- メインアニメーションループ ---
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
-            
             if (mode === 'plus') rotationAngle += 0.008;
             else if (mode === 'minus') rotationAngle -= 0.015;
             else rotationAngle += 0.002;
-
             drawStars();
             updateUI();
             drawTimer();
@@ -542,7 +526,6 @@
             
             const isNegative = actualMs < 0;
             const label = document.getElementById('statusLabel');
-
             if (isNegative) {
                 label.innerText = translations[currentLang].shortage;
                 label.style.color = '#ff3b30';
@@ -559,7 +542,6 @@
                 label.innerText = "";
                 label.classList.remove('pulse-text');
             }
-
             document.getElementById('alertOverlay').classList.toggle('alert-active', isNegative);
             document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = isNegative ? '#ff3b30' : 'white');
         }
@@ -570,17 +552,13 @@
             const time = performance.now();
             const pulseRate = (actualMs < 0) ? 250 : 800;
             const pulse = (Math.sin(time / pulseRate) + 1) / 2;
-            const totalRings = 6;
-            
-            for (let i = 0; i < totalRings; i++) {
+            for (let i = 0; i < 6; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, 125 + (i * 18), 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(255, 255, 255, 0.03)`; ctx.stroke();
             }
-            
             const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
             const activeGradients = (totalSeconds >= 0) ? cyberGradients : [['#FF4D4D', '#B30000']];
-            
-            for (let i = 0; i < totalRings; i++) {
+            for (let i = 0; i < 6; i++) {
                 const radius = 125 + (i * 18), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
                 if (progress > 0) {
@@ -598,7 +576,6 @@
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
         
-        // 初期化
         setLanguage('ja');
         loadState();
         animate();
