@@ -62,6 +62,44 @@
         .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
         .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 15px; font-size: 15px; }
 
+        #howToModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            transition: 0.3s;
+        }
+        .modal-content {
+            background: rgba(10, 10, 26, 0.98);
+            width: 85%; max-width: 400px; padding: 30px;
+            border-radius: 20px; border: 2px solid var(--accent-color);
+            text-align: center; 
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(0, 242, 255, 0.3);
+            transform: scale(0.8); opacity: 0;
+            animation: modalWarp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalWarp {
+            0% { transform: scale(0.5) translateY(20px); opacity: 0; filter: brightness(2); }
+            100% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+        }
+
+        .modal-step { margin-bottom: 25px; }
+        .step-num { color: var(--accent-color); font-weight: bold; font-size: 12px; display: block; margin-bottom: 5px; letter-spacing: 2px; }
+        .step-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px; text-shadow: 0 0 10px var(--accent-color); }
+        .step-desc { font-size: 13px; color: #ccc; line-height: 1.5; }
+        
+        .close-btn { 
+            background: transparent; color: var(--accent-color); border: 2px solid var(--accent-color); 
+            padding: 12px 50px; border-radius: 30px; font-weight: bold; cursor: pointer; 
+            margin-top: 10px; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .close-btn:active { background: var(--accent-color); color: #000; transform: scale(0.9); }
+
         .alert-toggle { position: absolute; top: 15px; right: 20px; cursor: pointer; width: 30px; height: 30px; opacity: 0.4; transition: 0.3s; z-index: 100; }
         .alert-toggle.active { opacity: 1; }
         .bell-icon { width: 20px; height: 20px; border: 2px solid white; border-radius: 10px 10px 2px 2px; position: relative; margin: 2px auto; }
@@ -137,8 +175,33 @@
             <div id="btnEn" class="menu-item" onclick="setLanguage('en')">English</div>
         </div>
         <div class="menu-section">
+            <h3 id="howToHeader">GUIDE</h3>
+            <div class="menu-item" onclick="showHowTo()">使い方を見る</div>
+        </div>
+        <div class="menu-section">
             <h3 id="devHeader">DEVELOPMENT</h3>
             <div id="devDesc" class="desc-text"></div>
+        </div>
+    </div>
+
+    <div id="howToModal">
+        <div class="modal-content">
+            <div class="modal-step">
+                <span class="step-num">MISSION 01</span>
+                <span class="step-title">時間をチャージ</span>
+                <p class="step-desc">勉強や読書をするときは「＋貯める」を起動。未来の遊びエネルギーを蓄えよう。</p>
+            </div>
+            <div class="modal-step">
+                <span class="step-num">MISSION 02</span>
+                <span class="step-title">エネルギー解放</span>
+                <p class="step-desc">遊びの時間は「ー使う」を起動。貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p>
+            </div>
+            <div class="modal-step">
+                <span class="step-num">GOLDEN RATIO</span>
+                <span class="step-title">「1：1」の均衡</span>
+                <p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p>
+            </div>
+            <button class="close-btn" onclick="closeHowTo()">Warp Start</button>
         </div>
     </div>
 
@@ -212,6 +275,14 @@
             updateUI();
         }
 
+        function showHowTo() {
+            document.getElementById('howToModal').style.display = 'flex';
+            if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
+        }
+        function closeHowTo() {
+            document.getElementById('howToModal').style.display = 'none';
+        }
+
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('menuOverlay');
@@ -219,15 +290,20 @@
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        let actualMs = 0, visualMs = 0, timerId = null, mode = null, lastTimestamp = 0, isMuted = false, lastAnnouncedSec = null, particles = [], rotationAngle = 0;
+        // --- Core Logic ---
+        let actualMs = 0, visualMs = 0, timerId = null, mode = null;
+        let lastAnnouncedSec = null, isMuted = false;
+        let particles = [], rotationAngle = 0;
+        
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
-        const pauseBtn = document.getElementById('pauseBtn'), statusLabel = document.getElementById('statusLabel');
+        const pauseBtn = document.getElementById('pauseBtn');
         const cyberGradients = [['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#7000ff', '#4b0082'], ['#ff00f2', '#b000ff']];
         
         let stars = [];
         let shootingStars = [];
 
+        // --- 星空演出 ---
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
             stars = [];
@@ -269,6 +345,7 @@
             });
         }
 
+        // --- パーティクル演出 ---
         class Particle {
             constructor(type, color = '#ffffff') {
                 this.type = type; 
@@ -326,26 +403,73 @@
             }
         }
 
-        function requestNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission();
+        // --- 状態保存 (LocalStorage) ---
+        function saveState() {
+            const state = {
+                actualMs,
+                mode,
+                startTime: mode ? Date.now() : null
+            };
+            localStorage.setItem('timeBankState_v2', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('timeBankState_v2');
+            if (saved) {
+                const state = JSON.parse(saved);
+                actualMs = state.actualMs;
+                if (state.mode && state.startTime) {
+                    const elapsed = Date.now() - state.startTime;
+                    actualMs += (state.mode === 'plus' ? elapsed : -elapsed);
+                    startTimer(state.mode);
+                }
             }
         }
 
+        // --- タイマー制御 (時刻ベース) ---
         function startTimer(newMode) {
             if (timerId) cancelAnimationFrame(timerId);
-            requestNotificationPermission();
+            
             mode = newMode;
+            const baseMs = actualMs;
+            const startTime = Date.now();
+            
             pauseBtn.classList.add('show');
-            lastTimestamp = performance.now();
-            const tick = (now) => {
-                const delta = now - lastTimestamp; lastTimestamp = now;
-                actualMs += (mode === 'plus' ? delta : -delta);
+            saveState();
+
+            const tick = () => {
+                const now = Date.now();
+                const elapsed = now - startTime;
+                actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed);
+
                 if (mode === 'plus' && Math.random() > 0.3) particles.push(new Particle('in'));
                 else if (mode === 'minus' && Math.random() > 0.35) particles.push(new Particle('out'));
-                checkCountdown(); timerId = requestAnimationFrame(tick);
+                
+                checkCountdown();
+                timerId = requestAnimationFrame(tick);
             };
             timerId = requestAnimationFrame(tick);
+        }
+
+        function pauseTimer() {
+            cancelAnimationFrame(timerId);
+            timerId = null;
+            mode = null;
+            pauseBtn.classList.remove('show');
+            saveState();
+        }
+
+        function clearTime() { 
+            if (Math.abs(actualMs) > 1000) explode(100, '#ffffff');
+            pauseTimer();
+            actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
+            localStorage.removeItem('timeBankState_v2');
+        }
+
+        function addTime(amount) {
+            actualMs += amount * 1000;
+            saveState();
+            for(let i=0; i<15; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out'));
         }
 
         function toggleMute() { isMuted = !isMuted; document.getElementById('alertToggle').classList.toggle('is-muted', isMuted); }
@@ -357,9 +481,6 @@
                 if (currentSec === 0) {
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
-                    if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("TIME BANK", { body: translations[currentLang].timeOver, silent: false });
-                    }
                 } else if ([600, 300, 60].includes(currentSec)) {
                     const msg = `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
                     speak(msg);
@@ -368,27 +489,19 @@
             }
         }
 
-        function pauseTimer() {
-            cancelAnimationFrame(timerId); timerId = null; mode = null;
-            pauseBtn.classList.remove('show');
-        }
-
-        function clearTime() { 
-            if (Math.abs(actualMs) > 1000) explode(100, '#ffffff');
-            pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
-        }
-
-        function addTime(amount) {
-            actualMs += amount * 1000;
-            for(let i=0; i<15; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out'));
-        }
-
+        // --- メインアニメーションループ ---
         function animate() {
+            // 表示上の数字を滑らかに更新
             visualMs += (actualMs - visualMs) * 0.15;
+            
             if (mode === 'plus') rotationAngle += 0.008;
             else if (mode === 'minus') rotationAngle -= 0.015;
             else rotationAngle += 0.002;
-            drawStars(); updateUI(); drawTimer(); requestAnimationFrame(animate);
+
+            drawStars();
+            updateUI();
+            drawTimer();
+            requestAnimationFrame(animate);
         }
 
         function updateUI() {
@@ -429,12 +542,15 @@
             const pulseRate = (actualMs < 0) ? 250 : 800;
             const pulse = (Math.sin(time / pulseRate) + 1) / 2;
             const totalRings = 6;
+            
             for (let i = 0; i < totalRings; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, 125 + (i * 18), 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(255, 255, 255, 0.03)`; ctx.stroke();
             }
+            
             const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
             const activeGradients = (totalSeconds >= 0) ? cyberGradients : [['#FF4D4D', '#B30000']];
+            
             for (let i = 0; i < totalRings; i++) {
                 const radius = 125 + (i * 18), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
@@ -453,7 +569,9 @@
             particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
         }
         
+        // 初期化
         setLanguage('ja');
+        loadState(); // 保存された状態を復元
         animate();
     </script>
 </body>
