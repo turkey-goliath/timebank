@@ -265,7 +265,7 @@
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 devHeader: "DEVELOPMENT",
                 devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>\n\nTime Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
-                timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分", voiceLang: "ja-JP"
+                timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
@@ -490,16 +490,23 @@
 
         function checkCountdown() {
             const currentSec = Math.floor(actualMs / 1000);
+            
+            // モードが「使う(minus)」の時だけ秒数案内をする
             if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
+                
+                // 0秒になった時
                 if (currentSec === 0) {
                     explode(150, '#ff3b30');
                     speak(translations[currentLang].timeOver);
-                    // 【追加】ブラウザ通知
                     sendNotification("TIME BANK", translations[currentLang].timeOverMsg);
-                } else if ([600, 300, 60].includes(currentSec)) {
-                    const msg = `${translations[currentLang].left} ${Math.abs(currentSec/60)} ${translations[currentLang].minutes}`;
+                } 
+                // 5分前 (300秒) または 1分前 (60秒) の時
+                else if (currentSec === 300 || currentSec === 60) {
+                    const mins = currentSec / 60;
+                    const msg = translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes;
                     speak(msg);
                 }
+                
                 lastAnnouncedSec = currentSec;
             }
         }
