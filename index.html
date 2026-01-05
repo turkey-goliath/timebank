@@ -6,11 +6,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Time Bank - Cosmic Pulse Evolution</title>
+    <title>Time Bank - Supernova Evolution</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 20px);
             --accent-color: #00f2ff;
+            --supernova-glow: 0 0 20px rgba(0, 242, 255, 0.5);
+            --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
         }
 
         body {
@@ -23,6 +25,11 @@
             touch-action: manipulation;
             padding-top: var(--safe-top);
             box-sizing: border-box;
+            transition: background 1.5s ease;
+        }
+
+        body.supernova-active {
+            background: radial-gradient(circle at center, #2b1d00 0%, #0a0700 70%, #000000 100%);
         }
 
         #starCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
@@ -35,7 +42,7 @@
         .logo-text {
             font-size: 24px; font-weight: 900; letter-spacing: 4px; color: #ffffff;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.3);
+            text-shadow: var(--supernova-glow);
             display: flex; align-items: center;
         }
         .logo-text span { color: var(--accent-color); margin-right: 4px; }
@@ -63,7 +70,27 @@
         .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
         .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 15px; font-size: 15px; }
 
-        /* Modals */
+        .support-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-support-link { 
+            background: var(--gold-gradient); color: #000; border: none; width: 100%; padding: 12px; 
+            border-radius: 30px; font-weight: bold; font-size: 13px; cursor: pointer; 
+            margin-bottom: 15px; transition: 0.3s;
+        }
+        .btn-support-link:active { transform: scale(0.95); opacity: 0.9; }
+        .support-msg { font-size: 12px; color: #ccc; line-height: 1.5; text-align: left; }
+        .support-msg b { color: #fff; border-bottom: 1px solid var(--accent-color); }
+
+        .pass-input {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
+        }
+        .pass-input:focus { border-color: var(--accent-color); }
+        
+        .auth-btns { display: flex; gap: 8px; }
+        .btn-auth { background: var(--accent-color); color: #000; border: none; flex: 2; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-reset-mode { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); flex: 1.5; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; transition: 0.3s; display: none; }
+        .btn-reset-mode.show { display: block; }
+
         .custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
@@ -76,7 +103,7 @@
             width: 85%; max-width: 420px; padding: 30px;
             border-radius: 20px; border: 2px solid var(--accent-color);
             text-align: center; 
-            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(var(--accent-rgb, 0, 242, 255), 0.3);
             max-height: 85vh; overflow-y: auto;
             box-sizing: border-box;
         }
@@ -93,7 +120,6 @@
         }
         .close-btn:active { background: var(--accent-color); color: #000; transform: scale(0.9); }
 
-        /* UI elements */
         .alert-toggle { position: absolute; top: 15px; right: 20px; cursor: pointer; width: 30px; height: 30px; opacity: 0.4; transition: 0.3s; z-index: 100; }
         .alert-toggle.active { opacity: 1; }
         .bell-icon { width: 20px; height: 20px; border: 2px solid white; border-radius: 10px 10px 2px 2px; position: relative; margin: 2px auto; }
@@ -120,7 +146,7 @@
         .status-label { font-size: 16px; letter-spacing: 2px; height: 24px; margin-bottom: 5px; padding-top: 15px; font-weight: bold; color: white; }
         .pulse-text { animation: soft-pulse 2.5s infinite ease-in-out; }
         @keyframes soft-pulse { 0%, 100% { opacity: 0.2; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
-        .time-main { font-size: 52px; font-weight: bold; line-height: 1; letter-spacing: 2px; }
+        .time-main { font-size: 52px; font-weight: bold; line-height: 1; letter-spacing: 2px; transition: text-shadow 0.5s ease; }
         .time-sub-m { font-size: 28px; opacity: 0.8; margin-top: 5px; }
         .time-sub-ms { font-size: 18px; opacity: 0.5; font-family: monospace; }
 
@@ -131,7 +157,23 @@
         .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 1px; display: block; }
         .btn-pause { width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden; touch-action: manipulation; }
         .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
-        .clear-btn { background: transparent; border: 1px solid #333; color: #555; padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s; touch-action: manipulation; }
+        
+        .clear-btn { 
+            background: transparent; 
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+            color: #ffffff; 
+            padding: 8px 60px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            letter-spacing: 2px; 
+            transition: 0.3s; 
+            touch-action: manipulation; 
+        }
+        .clear-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.95);
+        }
 
         @media (max-width: 600px) {
             body { justify-content: flex-start; }
@@ -163,51 +205,62 @@
 
     <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
     <div class="side-menu" id="sideMenu">
+        
         <div class="menu-section">
             <h3 id="langHeader">Language</h3>
             <div id="btnJp" class="menu-item active" onclick="setLanguage('ja')">日本語</div>
             <div id="btnEn" class="menu-item" onclick="setLanguage('en')">English</div>
         </div>
+
         <div class="menu-section">
             <h3 id="howToHeader">GUIDE</h3>
             <div id="btnGuide" class="menu-item" onclick="showHowTo()">使い方を見る</div>
         </div>
+
         <div class="menu-section">
             <h3 id="parentsHeader">FOR PARENTS</h3>
             <div id="btnParents" class="menu-item" onclick="showParentsModal()">保護者の方へ</div>
         </div>
+
         <div class="menu-section">
             <h3 id="devHeader">DEVELOPMENT</h3>
             <div id="devDesc" class="desc-text"></div>
         </div>
+
+        <div class="menu-section">
+            <h3 id="supportHeader">SUPPORT US</h3>
+            <div class="support-box">
+                <button class="btn-support-link" id="btnSupportText" onclick="openSupportLink()">TimeBankを100円で応援する(BASEサイト)</button>
+                <div class="support-msg" id="supportMsgText">
+                    このアプリは<b>無料で使えます。</b><br><br>
+                    「いいな」「役に立ったな」と思ったら、応援してもらえると次の改善につながります。<br><br>
+                    役に立つものを作って応援してもらえる喜びを、我が子に感じてもらえたら嬉しいです。
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3 id="codeHeader">Support Code</h3>
+            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力">
+            <div class="auth-btns">
+                <button class="btn-auth" onclick="checkPass()">認証</button>
+                <button id="resetModeBtn" class="btn-reset-mode" onclick="deactivateSupernovaMode(true)">通常モード</button>
+            </div>
+            <div id="supporterMsg" style="font-size: 11px; margin-top: 8px; color: var(--accent-color); line-height: 1.4;"></div>
+            <div id="codeDesc" style="font-size: 11px; margin-top: 12px; color: #888; line-height: 1.5;"></div>
+        </div>
     </div>
 
     <div id="howToModal" class="custom-modal">
-        <div class="modal-content">
-            <div class="modal-step">
-                <span class="step-num">MISSION 01</span>
-                <span class="step-title">時間をチャージ</span>
-                <p class="step-desc">勉強や読書をするときは「＋貯める」を起動。未来の遊びエネルギーを蓄えよう。</p>
+        <div class="modal-content" id="howToContent">
             </div>
-            <div class="modal-step">
-                <span class="step-num">MISSION 02</span>
-                <span class="step-title">エネルギー解放</span>
-                <p class="step-desc">遊びの時間は「ー使う」を起動。貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p>
-            </div>
-            <div class="modal-step">
-                <span class="step-num">GOLDEN RATIO</span>
-                <span class="step-title">「1：1」の均衡</span>
-                <p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p>
-            </div>
-            <button class="close-btn" onclick="closeHowTo()">Warp Start</button>
-        </div>
     </div>
 
     <div id="parentsModal" class="custom-modal">
         <div class="modal-content" style="text-align: left;">
             <div id="parentsContent"></div>
             <div style="text-align: center; margin-top: 20px;">
-                <button class="close-btn" onclick="closeParentsModal()">Close</button>
+                <button class="close-btn" onclick="closeParentsModal()">CLOSE</button>
             </div>
         </div>
     </div>
@@ -254,7 +307,19 @@
     </div>
 
     <script>
-        // --- 通知設定 ---
+        const PASS_CODE = "chucktheworld"; 
+        let isSupernovaMode = false;
+        let shootingStarProbability = 1 / (60 * 30);
+
+        function openSupportLink() {
+            const url = ""; // Add BASE link here
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert(currentLang === 'ja' ? "応援ありがとうございます！現在URLを準備中です。" : "Thank you for your support! Link is coming soon.");
+            }
+        }
+
         if ("Notification" in window) {
             if (Notification.permission !== "granted" && Notification.permission !== "denied") {
                 Notification.requestPermission();
@@ -271,78 +336,100 @@
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 devHeader: "DEVELOPMENT", guideBtn: "使い方を見る", parentsHeader: "FOR PARENTS", parentsBtn: "保護者の方へ",
+                supportBtn: "TimeBankを100円で応援する(BASEサイト)",
+                supportMsg: `このアプリは<b>無料で使えます。</b><br><br>「いいな」「役に立ったな」と思ったら、応援してもらえると次の改善につながります。<br><br>役に立つものを作って応援してもらえる喜びを、我が子に感じてもらえたら嬉しいです。`,
                 devDesc: "<span class='desc-highlight'>「全力で学び、全力で遊ぼう」</span>\n\nTime Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
+                codeDesc: "TimeBankを100円で応援すると色やアニメーションが変わる特別モードが使えます。",
+                guideContent: `
+                    <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">時間をチャージ</span><p class="step-desc">勉強や読書をするときは「＋貯める」を起動。未来の遊びエネルギーを蓄えよう。</p></div>
+                    <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギー解放</span><p class="step-desc">遊びの時間は「ー使う」を起動。貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
+                    <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">「1：1」の均衡</span><p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p></div>
+                    <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
                 parentsBody: `
-                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:15px; text-align:center;">制作の想い</h2>
-                    <p style="font-size:13px; line-height:1.6; color:#aaa; margin-bottom:20px;">
-                        このアプリは、ある親の「子どもにゲームを思う存分楽しんでほしい、でもバランスも大切にしてほしい」という葛藤から生まれました。<br><br>
-                        Time Bankは、時間を「貯める（投資）」と「使う（消費）」という<b>銀行の仕組み</b>で視覚化し、子ども自身が自律的に動くきっかけを作るためのツールです。
+                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:20px; text-align:center;">制作の想い</h2>
+                    <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
+                        このアプリは、「子どもにゲームを思い切り楽しんでほしい、でもバランスも大切にしてほしい」という思いから生まれました。<br><br>
+                        Time Bankは、時間を「貯める」と「使う」というシンプルな仕組みで視覚化し、子ども自身が自律的に楽しみながら動くきっかけを作るためのツールです。
                     </p>
-                    <h3 style="color:var(--accent-color); font-size:15px; margin-bottom:10px;">💡 効果的な使い方のヒント</h3>
+                    <h3 style="color:var(--accent-color); font-size:16px; margin-bottom:10px;">🤖 親子とAIの共同開発</h3>
+                    <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
+                        このアプリは、子どもと一緒に「どんな機能が欲しいか」「どんなデザインや仕掛けがワクワクするか」を話し合いながら、AI（人工知能）を駆使して1から作成しました。親子で試行錯誤して作り上げた、世界にひとつだけのタイムマシンです。
+                    </p>
+                    <h3 style="color:var(--accent-color); font-size:16px; margin-bottom:10px;">💡 効果的な使い方のヒント</h3>
                     <div style="font-size:13px; line-height:1.6; color:#ccc;">
-                        <b>1. 「1:1の法則」から始める</b><br>
-                        「30分勉強したら30分遊べる」というシンプルな比率からスタート。等価交換の感覚がタイムマネジメントの基礎になります。<br><br>
-                        <b>2. 「前借り」を許容する</b><br>
-                        時間がマイナスになってもOK。「未来の自分への借金」として、後でチャージする責任感を育てます。<br><br>
-                        <b>3. 成果を一緒に喜ぶ</b><br>
-                        貯まった数字を「宇宙エネルギーがパンパンだね！」とポジティブに評価してあげてください。
+                        <b style="color:#fff;">1. 「1:1の法則」から始める</b><br>
+                        「30分勉強したら30分遊べる」というシンプルな比率。等価交換の感覚がタイムマネジメントの基礎を作ります。<br><br>
+                        <b style="color:#fff;">2. 「前借り」を許容する</b><br>
+                        時間がマイナスになってもOK。「未来の自分への借金」として、後で穴埋めする責任感を育てます。<br><br>
+                        <b style="color:#fff;">3. 成果を一緒に喜ぶ</b><br>
+                        読書や勉強をして時間が少しでも溜まったら、一緒に喜びを分かち合いましょう！
                     </div>`,
-                timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP"
+                timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP",
+                supporterOk: "✨ サポーター認証完了！ ✨<br>応援ありがとうございます！",
+                backNormal: "通常モードに戻る", passPlaceholder: "合言葉を入力", authBtn: "認証"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 devHeader: "DEVELOPMENT", guideBtn: "GUIDE", parentsHeader: "FOR PARENTS", parentsBtn: "For Parents",
-                devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>\n\nTime Bank is a tool to visualize time as 'saving' and 'spending,' helping children manage and improve their daily activities like a game.",
+                supportBtn: "Support TimeBank ($1 via BASE)",
+                supportMsg: `This app is <b>free to use.</b><br><br>If you like it or find it helpful, your support will lead to future improvements.<br><br>We hope to show our child the joy of creating something useful and being supported by others.`,
+                devDesc: "<span class='desc-highlight'>\"Learn Hard, Play Hard\"</span>\n\nTime Bank visualizes time as 'saving' and 'spending,' helping children manage their daily activities like a game.",
+                codeDesc: "By supporting TimeBank with 100 JPY, you can unlock a special mode with unique colors and animations.",
+                guideContent: `
+                    <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">CHARGE TIME</span><p class="step-desc">When studying or reading, start "CHARGE". Store up energy for your future play time!</p></div>
+                    <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">RELEASE ENERGY</span><p class="step-desc">When it's play time, start "USE". Using only what you've saved is the rule of the universe!</p></div>
+                    <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">EQUILIBRIUM 1:1</span><p class="step-desc">Balance learning and playing equally. This is the path to becoming a True Time Master.</p></div>
+                    <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
                 parentsBody: `
-                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:15px; text-align:center;">Our Vision</h2>
-                    <p style="font-size:13px; line-height:1.6; color:#aaa; margin-bottom:20px;">
-                        Time Bank was born from a parent's desire: "I want my child to enjoy games to the fullest, but also value balance."<br><br>
-                        By visualizing time through "Saving" and "Spending," this tool encourages children to manage their own time like a game.
+                    <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:20px; text-align:center;">Our Philosophy</h2>
+                    <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
+                        This app was born from a desire for our child to fully enjoy gaming while also valuing balance in life.<br><br>
+                        Time Bank visualizes time through the simple mechanism of "Saving" and "Spending," creating a trigger for children to move autonomously and enjoyably.
                     </p>
-                    <h3 style="color:var(--accent-color); font-size:15px; margin-bottom:10px;">💡 Usage Tips</h3>
+                    <h3 style="color:var(--accent-color); font-size:16px; margin-bottom:10px;">🤖 Parent-Child & AI Co-development</h3>
+                    <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
+                        We developed this app from scratch using AI, discussing what features and designs would be most exciting. It is a unique "Time Machine" built through parent-child trial and error.
+                    </p>
+                    <h3 style="color:var(--accent-color); font-size:16px; margin-bottom:10px;">💡 Tips for Effective Use</h3>
                     <div style="font-size:13px; line-height:1.6; color:#ccc;">
-                        <b>1. Start with the "1:1 Rule"</b><br>
-                        Example: 30 mins of study = 30 mins of play. This builds the foundation of time management.<br><br>
-                        <b>2. Allow "Overdrafts"</b><br>
-                        It's okay to go into the negative. Treat it as a "loan from the future self" to teach responsibility.<br><br>
-                        <b>3. Celebrate the Numbers</b><br>
-                        Praise them when the bank is full! Visualizing effort leads to a sense of accomplishment.
+                        <b style="color:#fff;">1. Start with the "1:1 Rule"</b><br>
+                        A simple ratio: "Study for 30 min, play for 30 min." This sense of equal exchange builds the foundation of time management.<br><br>
+                        <b style="color:#fff;">2. Allow "Borrowing"</b><br>
+                        It's okay if time goes negative. Treat it as "debt to their future self" to foster a sense of responsibility for making it up later.<br><br>
+                        <b style="color:#fff;">3. Celebrate Success Together</b><br>
+                        When they save even a little time through reading or studying, share that joy together!
                     </div>`,
-                timeOver: "Time over", timeOverMsg: "Time is up!", left: "", minutes: "minutes left", voiceLang: "en-US"
+                timeOver: "Time over", timeOverMsg: "Time is up!", left: "", minutes: "minutes left", voiceLang: "en-US",
+                supporterOk: "✨ Supporter Activated! ✨<br>Thank you for your support!",
+                backNormal: "Back to Normal", passPlaceholder: "Enter Code", authBtn: "Auth"
             }
         };
 
         let currentLang = 'ja';
         function setLanguage(lang) {
             currentLang = lang;
-            document.getElementById('labelUse').innerText = translations[lang].use;
-            document.getElementById('labelCharge').innerText = translations[lang].charge;
-            document.getElementById('resetBtn').innerText = translations[lang].reset;
-            document.getElementById('devHeader').innerText = translations[lang].devHeader;
-            document.getElementById('devDesc').innerHTML = translations[lang].devDesc;
-            document.getElementById('howToHeader').innerText = translations[lang].guideBtn === "GUIDE" ? "GUIDE" : "GUIDE"; // Consistency
-            document.getElementById('btnGuide').innerText = translations[lang].guideBtn;
-            document.getElementById('parentsHeader').innerText = translations[lang].parentsHeader;
-            document.getElementById('btnParents').innerText = translations[lang].parentsBtn;
-            document.getElementById('parentsContent').innerHTML = translations[lang].parentsBody;
+            const t = translations[lang];
+            document.getElementById('labelUse').innerText = t.use;
+            document.getElementById('labelCharge').innerText = t.charge;
+            document.getElementById('resetBtn').innerText = t.reset;
+            document.getElementById('devHeader').innerText = t.devHeader;
+            document.getElementById('devDesc').innerHTML = t.devDesc;
+            document.getElementById('btnGuide').innerText = t.guideBtn;
+            document.getElementById('parentsHeader').innerText = t.parentsHeader;
+            document.getElementById('btnParents').innerText = t.parentsBtn;
+            document.getElementById('parentsContent').innerHTML = t.parentsBody;
+            document.getElementById('howToContent').innerHTML = t.guideContent;
+            document.getElementById('resetModeBtn').innerText = t.backNormal;
+            document.getElementById('btnSupportText').innerText = t.supportBtn;
+            document.getElementById('supportMsgText').innerHTML = t.supportMsg;
+            document.getElementById('passInput').placeholder = t.passPlaceholder;
+            document.querySelector('.btn-auth').innerText = t.authBtn;
+            document.getElementById('codeDesc').innerText = t.codeDesc;
             
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
             updateUI();
         }
-
-        // Modal Controls
-        function showHowTo() {
-            document.getElementById('howToModal').style.display = 'flex';
-            if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
-        }
-        function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
-        
-        function showParentsModal() {
-            document.getElementById('parentsModal').style.display = 'flex';
-            if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
-        }
-        function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
 
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
@@ -351,7 +438,42 @@
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        // --- Core Logic ---
+        function checkPass() {
+            const input = document.getElementById('passInput').value;
+            const msg = document.getElementById('supporterMsg');
+            if (input === PASS_CODE) {
+                activateSupernovaMode(true);
+                msg.innerHTML = translations[currentLang].supporterOk;
+                speak(currentLang === 'ja' ? "サポーター認証、完了。応援ありがとう！" : "Supporter activated. Thank you!");
+                document.getElementById('passInput').value = "";
+            } else {
+                msg.innerText = currentLang === 'ja' ? "コードが違います" : "Invalid Code";
+            }
+        }
+
+        function activateSupernovaMode(save = false) {
+            isSupernovaMode = true;
+            document.body.classList.add('supernova-active');
+            document.documentElement.style.setProperty('--accent-color', '#FFD700');
+            document.documentElement.style.setProperty('--supernova-glow', '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)');
+            shootingStarProbability = 1 / 150; 
+            document.getElementById('resetModeBtn').classList.add('show');
+            if (save) localStorage.setItem('timeBankSupernova', 'true');
+            explode(100, '#FFD700');
+        }
+
+        function deactivateSupernovaMode(save = false) {
+            isSupernovaMode = false;
+            document.body.classList.remove('supernova-active');
+            document.documentElement.style.setProperty('--accent-color', '#00f2ff');
+            document.documentElement.style.setProperty('--supernova-glow', '0 0 20px rgba(0, 242, 255, 0.5)');
+            shootingStarProbability = 1 / (60 * 30);
+            document.getElementById('resetModeBtn').classList.remove('show');
+            document.getElementById('supporterMsg').innerText = "";
+            if (save) localStorage.removeItem('timeBankSupernova');
+            explode(40, '#00f2ff');
+        }
+
         let actualMs = 0, visualMs = 0, timerId = null, mode = null;
         let lastAnnouncedSec = null, isMuted = false;
         let particles = [], rotationAngle = 0;
@@ -360,16 +482,19 @@
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
         const pauseBtn = document.getElementById('pauseBtn');
+
         const cyberGradients = [['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#7000ff', '#4b0082'], ['#ff00f2', '#b000ff']];
-        
+        const novaGradients = [['#FFFFFF', '#FFD700'], ['#FFD700', '#FFA500'], ['#FFFACD', '#DAA520'], ['#FFD700', '#B8860B']];
+        const greenEvolutionGradients = [['#00ff66', '#004422'], ['#33ff00', '#114400'], ['#00ffcc', '#004433']];
+
         let stars = [];
         let shootingStars = [];
 
         function initStars() {
             starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
             stars = [];
-            for (let i = 0; i < 150; i++) {
-                stars.push({ x: Math.random() * starCanvas.width, y: Math.random() * starCanvas.height, size: Math.random() * 1.5, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, opacity: Math.random() });
+            for (let i = 0; i < 200; i++) {
+                stars.push({ x: Math.random() * starCanvas.width, y: Math.random() * starCanvas.height, size: Math.random() * 1.8, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, opacity: Math.random() });
             }
         }
         window.addEventListener('resize', initStars); initStars();
@@ -378,28 +503,37 @@
             const startX = Math.random() * starCanvas.width;
             const startY = Math.random() * (starCanvas.height / 2);
             const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.2;
-            const speed = 10 + Math.random() * 15;
+            const speed = isSupernovaMode ? 15 + Math.random() * 20 : 10 + Math.random() * 15;
             shootingStars.push({ x: startX, y: startY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, opacity: 1.0 });
         }
 
         function drawStars() {
             sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+            if (isSupernovaMode) {
+                const radial = sctx.createRadialGradient(starCanvas.width/2, starCanvas.height/2, 0, starCanvas.width/2, starCanvas.height/2, 400);
+                radial.addColorStop(0, 'rgba(255, 200, 50, 0.15)');
+                radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                sctx.fillStyle = radial;
+                sctx.fillRect(0, 0, starCanvas.width, starCanvas.height);
+            }
             stars.forEach(s => {
-                s.x += s.vx; s.y += s.vy;
+                s.x += s.vx * (isSupernovaMode ? 2 : 1); s.y += s.vy * (isSupernovaMode ? 2 : 1);
                 if (s.x < 0) s.x = starCanvas.width; if (s.x > starCanvas.width) s.x = 0;
                 if (s.y < 0) s.y = starCanvas.height; if (s.y > starCanvas.height) s.y = 0;
                 sctx.beginPath(); sctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-                sctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`; sctx.fill();
+                sctx.fillStyle = isSupernovaMode ? `rgba(255, 240, 200, ${s.opacity})` : `rgba(255, 255, 255, ${s.opacity})`;
+                sctx.fill();
             });
-            if (Math.random() < 1 / (60 * 30)) createShootingStar();
+            if (Math.random() < shootingStarProbability) createShootingStar();
             shootingStars = shootingStars.filter(ss => {
                 ss.x += ss.vx; ss.y += ss.vy; ss.opacity -= 0.02;
                 if (ss.opacity <= 0) return false;
                 sctx.beginPath();
                 const grad = sctx.createLinearGradient(ss.x, ss.y, ss.x - ss.vx * 2, ss.y - ss.vy * 2);
-                grad.addColorStop(0, `rgba(255, 255, 255, ${ss.opacity})`);
-                grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
-                sctx.strokeStyle = grad; sctx.lineWidth = 2;
+                const starColor = isSupernovaMode ? '255, 230, 100' : '255, 255, 255';
+                grad.addColorStop(0, `rgba(${starColor}, ${ss.opacity})`);
+                grad.addColorStop(1, `rgba(${starColor}, 0)`);
+                sctx.strokeStyle = grad; sctx.lineWidth = isSupernovaMode ? 3 : 2;
                 sctx.moveTo(ss.x, ss.y); sctx.lineTo(ss.x - ss.vx * 2, ss.y - ss.vy * 2);
                 sctx.stroke();
                 return true;
@@ -407,114 +541,47 @@
         }
 
         class Particle {
-            constructor(type, color = '#ffffff') {
+            constructor(type, color) {
                 this.type = type; this.cx = timerCanvas.width / 2; this.cy = timerCanvas.height / 2;
-                this.color = color; this.angle = Math.random() * Math.PI * 2; this.friction = 1.0;
-                if (type === 'in') { this.radius = 220 + Math.random() * 50; this.speed = 0.005 + Math.random() * 0.01; this.radialSpeed = 0.8 + Math.random() * 0.5; this.life = 1.0; }
-                else if (type === 'out') { this.radius = Math.random() * 20; this.speed = (Math.random() - 0.5) * 0.02; this.radialSpeed = 1.2 + Math.random() * 2; this.life = 1.0; }
-                else if (type === 'explode') { this.radius = Math.random() * 10; this.radialSpeed = 5 + Math.random() * 10; this.friction = 0.95; this.life = 1.0; }
-                this.size = Math.random() * 2.0 + 0.5;
+                this.angle = Math.random() * Math.PI * 2; this.friction = 1.0;
+                const speedBoost = isSupernovaMode ? 1.5 : 1.0;
+                if (type === 'in') { this.radius = 250 + Math.random() * 50; this.speed = (0.005 + Math.random() * 0.01) * speedBoost; this.radialSpeed = (0.8 + Math.random() * 0.5) * speedBoost; this.life = 1.0; }
+                else if (type === 'out') { this.radius = Math.random() * 20; this.speed = (Math.random() - 0.5) * 0.02; this.radialSpeed = (1.2 + Math.random() * 2) * speedBoost; this.life = 1.0; }
+                else if (type === 'explode') { this.radius = Math.random() * 10; this.radialSpeed = (5 + Math.random() * 10) * speedBoost; this.friction = 0.95; this.life = 1.0; }
+                this.size = (Math.random() * 2.0 + 0.5) * (isSupernovaMode ? 1.5 : 1);
             }
             update() {
                 if (this.type === 'in') { this.angle += this.speed; this.radius -= this.radialSpeed; this.life = Math.min(1.0, (this.radius - 40) / 100); }
                 else if (this.type === 'out') { this.angle += this.speed; this.radius += this.radialSpeed; this.life = (this.radius < 50) ? 0.2 : 1.0 - (this.radius / 250); }
                 else if (this.type === 'explode') { this.radialSpeed *= this.friction; this.radius += this.radialSpeed; this.life -= 0.015; }
                 this.x = this.cx + Math.cos(this.angle) * this.radius; this.y = this.cy + Math.sin(this.angle) * this.radius;
-                return this.life > 0.01 && this.radius < 400 && (this.type === 'in' ? this.radius > 30 : true);
+                return this.life > 0.01 && this.radius < 450 && (this.type === 'in' ? this.radius > 30 : true);
             }
-            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = isSupernovaMode ? '#FFFACD' : '#FFFFFF'; ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; }
         }
 
         function explode(count, color) { for (let i = 0; i < count; i++) { particles.push(new Particle('explode', color)); } }
-
-        function saveState() {
-            const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs };
-            localStorage.setItem('timeBankState_v2', JSON.stringify(state));
-        }
-
-        function loadState() {
-            const saved = localStorage.getItem('timeBankState_v2');
-            if (saved) {
-                const state = JSON.parse(saved);
-                actualMs = state.actualMs;
-                if (state.mode && state.startTime) {
-                    baseMs = state.baseMs || actualMs;
-                    startTime = state.startTime;
-                    const elapsed = Date.now() - startTime;
-                    actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed);
-                    startTimer(state.mode, true);
-                }
-            }
-        }
-
-        function startTimer(newMode, isFromLoad = false) {
-            if (timerId) cancelAnimationFrame(timerId);
-            mode = newMode;
-            if (!isFromLoad) { baseMs = actualMs; startTime = Date.now(); }
-            pauseBtn.classList.add('show');
-            saveState();
-            const tick = () => {
-                const now = Date.now();
-                const elapsed = now - startTime;
-                actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed);
-                if (mode === 'plus' && Math.random() > 0.3) particles.push(new Particle('in'));
-                else if (mode === 'minus' && Math.random() > 0.35) particles.push(new Particle('out'));
-                checkCountdown();
-                timerId = requestAnimationFrame(tick);
-            };
-            timerId = requestAnimationFrame(tick);
-        }
-
-        function pauseTimer() {
-            if(timerId) cancelAnimationFrame(timerId);
-            timerId = null; mode = null;
-            pauseBtn.classList.remove('show');
-            saveState();
-        }
-
-        function clearTime() { 
-            if (Math.abs(actualMs) > 1000) explode(100, '#ffffff');
-            pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
-            localStorage.removeItem('timeBankState_v2');
-        }
-
-        function addTime(amount) {
-            const msToAdd = amount * 1000;
-            actualMs += msToAdd;
-            if (mode !== null) { baseMs += msToAdd; }
-            saveState();
-            for(let i=0; i<15; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out'));
-        }
-
+        function saveState() { const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs }; localStorage.setItem('timeBankState_v4', JSON.stringify(state)); }
+        function loadState() { if (localStorage.getItem('timeBankSupernova') === 'true') activateSupernovaMode(); const saved = localStorage.getItem('timeBankState_v4'); if (saved) { const state = JSON.parse(saved); actualMs = state.actualMs; if (state.mode && state.startTime) { baseMs = state.baseMs || actualMs; startTime = state.startTime; const elapsed = Date.now() - startTime; actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed); startTimer(state.mode, true); } } }
+        function startTimer(newMode, isFromLoad = false) { if (timerId) cancelAnimationFrame(timerId); mode = newMode; if (!isFromLoad) { baseMs = actualMs; startTime = Date.now(); } pauseBtn.classList.add('show'); saveState(); const tick = () => { const now = Date.now(); const elapsed = now - startTime; actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed); const spawnRate = isSupernovaMode ? 0.5 : 0.3; if (mode === 'plus' && Math.random() > (1 - spawnRate)) particles.push(new Particle('in')); else if (mode === 'minus' && Math.random() > (1 - spawnRate + 0.05)) particles.push(new Particle('out')); checkCountdown(); timerId = requestAnimationFrame(tick); }; timerId = requestAnimationFrame(tick); }
+        function pauseTimer() { if(timerId) cancelAnimationFrame(timerId); timerId = null; mode = null; pauseBtn.classList.remove('show'); saveState(); }
+        function clearTime() { if (Math.abs(actualMs) > 1000) explode(100); pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; localStorage.removeItem('timeBankState_v4'); }
+        function addTime(amount) { const msToAdd = amount * 1000; actualMs += msToAdd; if (mode !== null) { baseMs += msToAdd; } saveState(); for(let i=0; i<20; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out')); }
         function toggleMute() { isMuted = !isMuted; document.getElementById('alertToggle').classList.toggle('is-muted', isMuted); }
         function speak(text) { if (!isMuted) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = translations[currentLang].voiceLang; window.speechSynthesis.speak(u); } }
-
-        function checkCountdown() {
-            const currentSec = Math.floor(actualMs / 1000);
-            if (mode === 'minus' && currentSec !== lastAnnouncedSec) {
-                if (currentSec === 0) {
-                    explode(150, '#ff3b30');
-                    speak(translations[currentLang].timeOver);
-                    sendNotification("TIME BANK", translations[currentLang].timeOverMsg);
-                } 
-                else if (currentSec === 300 || currentSec === 60) {
-                    const mins = currentSec / 60;
-                    const msg = translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes;
-                    speak(msg);
-                }
-                lastAnnouncedSec = currentSec;
-            }
-        }
+        function checkCountdown() { const currentSec = Math.floor(actualMs / 1000); if (mode === 'minus' && currentSec !== lastAnnouncedSec) { if (currentSec === 0) { explode(150, '#ff3b30'); speak(translations[currentLang].timeOver); sendNotification("TIME BANK", translations[currentLang].timeOverMsg); } else if (currentSec === 300 || currentSec === 60) { const mins = currentSec / 60; speak(translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes); } lastAnnouncedSec = currentSec; } }
+        function showHowTo() { document.getElementById('howToModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
+        function showParentsModal() { document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
 
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
-            if (mode === 'plus') rotationAngle += 0.008;
-            else if (mode === 'minus') rotationAngle -= 0.015;
+            const rotSpeed = isSupernovaMode ? 1.5 : 1.0;
+            if (mode === 'plus') rotationAngle += 0.008 * rotSpeed;
+            else if (mode === 'minus') rotationAngle -= 0.015 * rotSpeed;
             else rotationAngle += 0.002;
-            drawStars();
-            updateUI();
-            drawTimer();
-            requestAnimationFrame(animate);
+            drawStars(); updateUI(); drawTimer(); requestAnimationFrame(animate);
         }
 
         function updateUI() {
@@ -523,41 +590,46 @@
             document.getElementById('timeMain').innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             document.getElementById('timeSubM').innerText = String(s).padStart(2, '0');
             document.getElementById('timeSubMs').innerText = String(ms).padStart(2, '0');
-            
             const isNegative = actualMs < 0;
             const label = document.getElementById('statusLabel');
-            if (isNegative) {
-                label.innerText = translations[currentLang].shortage;
-                label.style.color = '#ff3b30';
-                label.classList.add('pulse-text');
-            } else if (mode === 'plus') {
-                label.innerText = translations[currentLang].charging;
-                label.style.color = 'white';
-                label.classList.add('pulse-text');
-            } else if (mode === 'minus') {
-                label.innerText = translations[currentLang].using;
-                label.style.color = 'white';
-                label.classList.add('pulse-text');
-            } else {
-                label.innerText = "";
-                label.classList.remove('pulse-text');
-            }
+            const timeDisplay = document.getElementById('timeMain');
+            let textColor = 'white';
+            if (isNegative) { textColor = '#ff3b30'; timeDisplay.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; }
+            else if (mode === 'minus') { textColor = '#00ff66'; timeDisplay.style.textShadow = "0 0 15px rgba(0, 255, 102, 0.6)"; }
+            else if (isSupernovaMode) { textColor = '#FFD700'; timeDisplay.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; }
+            else { timeDisplay.style.textShadow = "none"; }
+            if (isNegative) { label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); }
+            else if (mode === 'plus') { label.innerText = translations[currentLang].charging; label.style.color = isSupernovaMode ? '#FFD700' : 'white'; label.classList.add('pulse-text'); }
+            else if (mode === 'minus') { label.innerText = translations[currentLang].using; label.style.color = '#00ff66'; label.classList.add('pulse-text'); }
+            else { label.innerText = ""; label.classList.remove('pulse-text'); }
             document.getElementById('alertOverlay').classList.toggle('alert-active', isNegative);
-            document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = isNegative ? '#ff3b30' : 'white');
+            document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = textColor);
         }
 
         function drawTimer() {
             ctx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
             let cx = timerCanvas.width / 2, cy = timerCanvas.height / 2;
             const time = performance.now();
-            const pulseRate = (actualMs < 0) ? 250 : 800;
-            const pulse = (Math.sin(time / pulseRate) + 1) / 2;
+            const isUsingMode = (mode === 'minus');
+            const isChargingMode = (mode === 'plus');
+            const isNegative = (actualMs < 0);
+            
+            const pulseRate = (isUsingMode || isNegative) ? 400 : 800;
+            const basePulse = (Math.sin(time / pulseRate) + 1) / 2;
+            
+            let heartBeat = 0;
+            if (isSupernovaMode && isChargingMode) {
+                const t = (time % 1000) / 1000; 
+                heartBeat = Math.pow(Math.sin(t * Math.PI), 10) * 0.8 + Math.pow(Math.sin(t * Math.PI - 0.5), 10) * 0.5;
+            }
+
             for (let i = 0; i < 6; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, 125 + (i * 18), 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(255, 255, 255, 0.03)`; ctx.stroke();
+                ctx.strokeStyle = isSupernovaMode ? `rgba(255, 215, 0, 0.08)` : `rgba(255, 255, 255, 0.03)`;
+                ctx.stroke();
             }
             const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
-            const activeGradients = (totalSeconds >= 0) ? cyberGradients : [['#FF4D4D', '#B30000']];
+            let activeGradients = isNegative ? [['#ff0000', '#880000']] : (isUsingMode ? greenEvolutionGradients : (isSupernovaMode ? novaGradients : cyberGradients));
             for (let i = 0; i < 6; i++) {
                 const radius = 125 + (i * 18), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
@@ -566,19 +638,22 @@
                     ctx.beginPath();
                     if (totalSeconds >= 0) ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
                     else ctx.arc(0, 0, radius, 0, -Math.PI * 2 * progress, true);
-                    ctx.lineWidth = ((totalSeconds < 0) ? 4.5 : 3.0) + (pulse * (totalSeconds < 0 ? 3.0 : 2.0));
-                    ctx.shadowBlur = (totalSeconds < 0 ? 15 : 8) + (pulse * 12);
-                    ctx.shadowColor = activeGradients[i % activeGradients.length][0];
-                    ctx.strokeStyle = activeGradients[i % activeGradients.length][0];
+                    
+                    const baseWidth = 3.0 + (basePulse * 2.0);
+                    const baseShadow = (isSupernovaMode ? 15 : 8) + (basePulse * 10);
+                    
+                    ctx.lineWidth = baseWidth + (heartBeat * 6.0); 
+                    ctx.shadowBlur = baseShadow + (heartBeat * 25); 
+                    
+                    const colorPair = activeGradients[i % activeGradients.length];
+                    ctx.shadowColor = colorPair[0]; ctx.strokeStyle = colorPair[0];
                     ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
                 }
             }
-            particles = particles.filter(p => { if (p.update()) { p.draw(); return true; } return false; });
+            particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
-        setLanguage('ja');
-        loadState();
-        animate();
+        setLanguage('ja'); loadState(); animate();
     </script>
 </body>
 </html>
