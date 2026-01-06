@@ -94,14 +94,14 @@
         .btn-reset-mode.show { display: block; }
 
         /* Share Styles */
-        .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px; }
+        .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
         .share-btn { 
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
             aspect-ratio: 1/1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: 0.3s; text-decoration: none;
         }
         .share-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
-        .share-btn svg { width: 20px; height: 20px; fill: white; opacity: 0.8; }
+        .share-btn svg { width: 24px; height: 24px; fill: white; opacity: 0.8; }
         .share-btn.copy svg { fill: var(--accent-color); }
 
         .custom-modal {
@@ -251,9 +251,6 @@
                 <a id="shareLine" href="#" target="_blank" class="share-btn" title="LINE">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.45 2 9.68c0 2.2 1.24 4.17 3.23 5.48-.16.53-.58 1.93-.66 2.22-.1.35.14.35.3.23.12-.09 1.94-1.32 2.7-1.84.45.13.93.2 1.43.2 5.52 0 10-3.45 10-7.68S17.52 2 12 2z"/></svg>
                 </a>
-                <a id="shareFb" href="#" target="_blank" class="share-btn" title="Facebook">
-                    <svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.12 8.44 9.88v-6.99H7.9v-2.89h2.54V9.85c0-2.51 1.49-3.89 3.77-3.89 1.09 0 2.23.19 2.23.19v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.77l-.44 2.89h-2.33v6.99C18.34 21.12 22 16.99 22 12z"/></svg>
-                </a>
                 <div class="share-btn copy" onclick="copyLink()" title="Copy Link">
                     <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                 </div>
@@ -378,7 +375,7 @@
                 timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP",
                 supporterOk: "✨ SUPERNOVAモード起動！ ✨<br>応援ありがとうございます！",
                 backNormal: "通常モードに戻る", passPlaceholder: "合言葉を入力", authBtn: "認証",
-                shareTitle: "TIME BANK | 子どもの自律を育てるタイムマシン"
+                shareX: "貯めて、使って、遊び尽くせ。未来をつくる時間銀行。——全小学生に体験してほしい、自律型タイムマネジメントツール"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
@@ -416,7 +413,7 @@
                 timeOver: "Time over", timeOverMsg: "Time is up!", left: "", minutes: "minutes left", voiceLang: "en-US",
                 supporterOk: "✨ Special Mode Activated! ✨<br>Thank you for your support!",
                 backNormal: "Back to Normal", passPlaceholder: "Enter Code", authBtn: "Auth",
-                shareTitle: "TIME BANK | Time management app for kids"
+                shareX: "Save, Spend, and Play! Time Bank: A Time Machine for the Future. An autonomous time management tool for kids."
             }
         };
 
@@ -447,13 +444,13 @@
             updateUI();
         }
 
-        // Share Link Update Logic
         function updateShareLinks() {
             const url = encodeURIComponent(window.location.href);
-            const text = encodeURIComponent(translations[currentLang].shareTitle);
+            const text = encodeURIComponent(translations[currentLang].shareX);
+            // X (Twitter)
             document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-            document.getElementById('shareLine').href = `https://social-plugins.line.me/lineit/share?url=${url}`;
-            document.getElementById('shareFb').href = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            // LINE (Using direct share endpoint to trigger contact selection)
+            document.getElementById('shareLine').href = `https://line.me/R/share?text=${text}%20${url}`;
         }
 
         function copyLink() {
