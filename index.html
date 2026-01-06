@@ -6,7 +6,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Time Bank - Time Bank | 未来をつくる時間銀行</title>
+    <meta property="og:title" content="Time Bank - 未来をつくる時間銀行">
+    <meta property="og:description" content="Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://turkey-goliath.github.io/timebank/">
+    
+    <title>Time Bank | 未来をつくる時間銀行</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 20px);
@@ -375,7 +380,8 @@
                 timeOver: "時間終了", timeOverMsg: "時間がなくなりました！", left: "残り", minutes: "分です", voiceLang: "ja-JP",
                 supporterOk: "✨ SUPERNOVAモード起動！ ✨<br>応援ありがとうございます！",
                 backNormal: "通常モードに戻る", passPlaceholder: "合言葉を入力", authBtn: "認証",
-                shareX: "貯めて、使って、遊び尽くせ！未来をつくる時間銀行「TIME BANK」。子どもたちの活動をゲームのように視覚化する自律型タイムマネジメントツール。"
+                shareTitle: "Time Bank - 未来をつくる時間銀行",
+                shareX: "貯めて、使って、遊び尽くせ！未来をつくる時間銀行「TIME BANK」。子どもたちの活動を「貯める」「使う」で視覚化する自律型タイムマネジメントツール。"
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
@@ -413,6 +419,7 @@
                 timeOver: "Time over", timeOverMsg: "Time is up!", left: "", minutes: "minutes left", voiceLang: "en-US",
                 supporterOk: "✨ Special Mode Activated! ✨<br>Thank you for your support!",
                 backNormal: "Back to Normal", passPlaceholder: "Enter Code", authBtn: "Auth",
+                shareTitle: "Time Bank - Banking your future",
                 shareX: "Save, Spend, and Play! Time Bank: A Time Machine for the Future. An autonomous time management tool for kids."
             }
         };
@@ -449,7 +456,7 @@
             const text = encodeURIComponent(translations[currentLang].shareX);
             // X (Twitter)
             document.getElementById('shareX').href = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
-            // LINE (Using direct share endpoint to trigger contact selection)
+            // LINE
             document.getElementById('shareLine').href = `https://line.me/R/share?text=${text}%20${url}`;
         }
 
