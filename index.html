@@ -26,7 +26,10 @@
             font-family: 'Inter', 'Helvetica Neue', sans-serif;
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; overflow-x: hidden; user-select: none;
+            min-height: 100vh; margin: 0; overflow-x: hidden; 
+            /* 修正点：一律のnoneを外し、要素ごとに制御する */
+            user-select: none;
+            -webkit-user-select: none;
             touch-action: manipulation;
             padding-top: var(--safe-top);
             box-sizing: border-box;
@@ -120,13 +123,13 @@
         .support-msg b { color: #fff; border-bottom: 1px solid var(--accent-color); }
         .dev-badge { display: inline-block; background: rgba(0, 242, 255, 0.15); color: var(--accent-color); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid rgba(0, 242, 255, 0.3); }
 
-        /* 入力エリアの修正 */
+        /* 入力エリアの修正（重要） */
         .pass-input {
             width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
             color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
-            font-size: 16px; /* iOSでの自動ズーム防止 */
-            user-select: text; /* 入力を許可 */
-            -webkit-user-select: text;
+            font-size: 16px; /* iOSでの自動ズーム防止のために16px以上に設定 */
+            user-select: text !important; /* 入力を強制許可 */
+            -webkit-user-select: text !important;
             appearance: none; -webkit-appearance: none;
         }
         .pass-input:focus { border-color: var(--accent-color); background: rgba(255,255,255,0.15); }
@@ -282,7 +285,7 @@
         <div class="menu-section">
             <h3 id="codeHeader">SUPPORT CODE</h3>
             <div id="codeDesc" style="font-size: 11px; margin-bottom: 10px; color: #888; line-height: 1.4;"></div>
-            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" novalidate>
+            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
             <div class="auth-btns">
                 <button class="btn-auth" onclick="checkPass()">認証</button>
                 <button id="resetModeBtn" class="btn-reset-mode" onclick="deactivateSupernovaMode(true)">通常モード</button>
@@ -793,6 +796,11 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
+        // 追加の修正：入力フィールドをクリックした際に確実にフォーカスさせる
+        document.getElementById('passInput').addEventListener('touchstart', function(e) {
+            this.focus();
+        }, {passive: true});
+
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
