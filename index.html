@@ -27,7 +27,6 @@
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; overflow-x: hidden;
-            /* 基本は選択不可だが、inputだけは例外にする設定 */
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
@@ -122,13 +121,10 @@
         .support-msg b { color: #fff; border-bottom: 1px solid var(--accent-color); }
         .dev-badge { display: inline-block; background: rgba(0, 242, 255, 0.15); color: var(--accent-color); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid rgba(0, 242, 255, 0.3); }
 
-        /* 入力エリアの修正版 */
         .pass-input {
             width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
             color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
-            font-size: 16px; /* 16px未満だとiOSでズームされるのを防ぐ */
-            
-            /* 入力可能にするための重要設定 */
+            font-size: 16px; 
             user-select: text !important;
             -webkit-user-select: text !important;
             appearance: none; -webkit-appearance: none;
@@ -369,21 +365,29 @@
         let isSupernovaMode = false;
         let shootingStarProbability = 1 / (60 * 30);
 
-        // iOS PWAでの入力修正: タップ時に明示的にフォーカスさせる
-        document.getElementById('passInput').addEventListener('touchstart', function(e) {
-            this.focus();
-        }, {passive: true});
+        // iOS PWA & Android 修正
+        const passInputField = document.getElementById('passInput');
+        if (passInputField) {
+            passInputField.addEventListener('touchstart', function(e) {
+                this.focus();
+            }, {passive: true});
+        }
 
+        // 通知権限の安全なリクエスト
         if ("Notification" in window) {
-            if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-                Notification.requestPermission();
-            }
+            try {
+                if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            } catch (e) { console.warn("Notification not supported in this context"); }
         }
 
         function sendNotification(title, body) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification(title, { body: body });
-            }
+            try {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification(title, { body: body });
+                }
+            } catch (e) { console.warn("Notification failed"); }
         }
 
         const translations = {
@@ -546,7 +550,9 @@
             document.documentElement.style.setProperty('--supernova-glow', '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)');
             shootingStarProbability = 1 / 150; 
             document.getElementById('resetModeBtn').classList.add('show');
-            if (save) localStorage.setItem('timeBankSupernova', 'true');
+            if (save) {
+                try { localStorage.setItem('timeBankSupernova', 'true'); } catch(e){}
+            }
             explode(100, '#FFD700');
         }
 
@@ -558,7 +564,9 @@
             shootingStarProbability = 1 / (60 * 30);
             document.getElementById('resetModeBtn').classList.remove('show');
             document.getElementById('supporterMsg').innerText = "";
-            if (save) localStorage.removeItem('timeBankSupernova');
+            if (save) {
+                try { localStorage.removeItem('timeBankSupernova'); } catch(e){}
+            }
             explode(40, '#00f2ff');
         }
 
@@ -656,8 +664,33 @@
         }
 
         function explode(count, color) { for (let i = 0; i < count; i++) { particles.push(new Particle('explode', color)); } }
-        function saveState() { const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs }; localStorage.setItem('timeBankState_v4', JSON.stringify(state)); }
-        function loadState() { if (localStorage.getItem('timeBankSupernova') === 'true') activateSupernovaMode(); const saved = localStorage.getItem('timeBankState_v4'); if (saved) { const state = JSON.parse(saved); actualMs = state.actualMs; if (state.mode && state.startTime) { baseMs = state.baseMs || actualMs; startTime = state.startTime; const elapsed = Date.now() - startTime; actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed); startTimer(state.mode, true); } } }
+        
+        // localStorage 安全な保存
+        function saveState() { 
+            try {
+                const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs }; 
+                localStorage.setItem('timeBankState_v4', JSON.stringify(state)); 
+            } catch(e) { console.warn("Could not save state"); }
+        }
+
+        // localStorage 安全な読み込み
+        function loadState() { 
+            try {
+                if (localStorage.getItem('timeBankSupernova') === 'true') activateSupernovaMode(); 
+                const saved = localStorage.getItem('timeBankState_v4'); 
+                if (saved) { 
+                    const state = JSON.parse(saved); 
+                    actualMs = state.actualMs || 0; 
+                    if (state.mode && state.startTime) { 
+                        baseMs = state.baseMs || actualMs; 
+                        startTime = state.startTime; 
+                        const elapsed = Date.now() - startTime; 
+                        actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed); 
+                        startTimer(state.mode, true); 
+                    } 
+                } 
+            } catch(e) { console.warn("Could not load state"); }
+        }
         
         function startTimer(newMode, isFromLoad = false) { 
             if (timerId) cancelAnimationFrame(timerId); 
@@ -671,7 +704,7 @@
                 startTime = Date.now(); 
             } 
             
-            pauseBtn.classList.add('show'); 
+            if (pauseBtn) pauseBtn.classList.add('show'); 
             saveState(); 
             const tick = () => { 
                 const now = Date.now(); 
@@ -686,12 +719,57 @@
             timerId = requestAnimationFrame(tick); 
         }
 
-        function pauseTimer() { if(timerId) cancelAnimationFrame(timerId); timerId = null; mode = null; pauseBtn.classList.remove('show'); saveState(); }
-        function clearTime() { if (Math.abs(actualMs) > 1000) explode(100); pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; localStorage.removeItem('timeBankState_v4'); }
-        function addTime(amount) { const msToAdd = amount * 1000; actualMs += msToAdd; if (mode !== null) { baseMs += msToAdd; } saveState(); for(let i=0; i<20; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out')); }
-        function toggleMute() { isMuted = !isMuted; document.getElementById('alertToggle').classList.toggle('is-muted', isMuted); }
-        function speak(text) { if (!isMuted) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = translations[currentLang].voiceLang; window.speechSynthesis.speak(u); } }
-        function checkCountdown() { const currentSec = Math.floor(actualMs / 1000); if (mode === 'minus' && currentSec !== lastAnnouncedSec) { if (currentSec === 0) { explode(150, '#ff3b30'); speak(translations[currentLang].timeOver); sendNotification("TIME BANK", translations[currentLang].timeOverMsg); } else if (currentSec === 300 || currentSec === 60) { const mins = currentSec / 60; speak(translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes); } lastAnnouncedSec = currentSec; } }
+        function pauseTimer() { if(timerId) cancelAnimationFrame(timerId); timerId = null; mode = null; if (pauseBtn) pauseBtn.classList.remove('show'); saveState(); }
+        
+        function clearTime() { 
+            if (Math.abs(actualMs) > 1000) explode(100); 
+            pauseTimer(); 
+            actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
+            try { localStorage.removeItem('timeBankState_v4'); } catch(e){}
+        }
+
+        function addTime(amount) { 
+            const msToAdd = amount * 1000; 
+            actualMs += msToAdd; 
+            if (mode !== null) { baseMs += msToAdd; } 
+            saveState(); 
+            for(let i=0; i<20; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out')); 
+        }
+
+        function toggleMute() { 
+            isMuted = !isMuted; 
+            const toggleBtn = document.getElementById('alertToggle');
+            if (toggleBtn) toggleBtn.classList.toggle('is-muted', isMuted); 
+        }
+
+        // 音声合成の安全な実行
+        function speak(text) { 
+            if (!isMuted && 'speechSynthesis' in window) { 
+                try {
+                    window.speechSynthesis.cancel(); 
+                    const u = new SpeechSynthesisUtterance(text); 
+                    u.lang = translations[currentLang].voiceLang; 
+                    u.onerror = (e) => console.error("Speech error", e);
+                    window.speechSynthesis.speak(u); 
+                } catch(e) { console.error("Speech Synthesis failed", e); }
+            } 
+        }
+
+        function checkCountdown() { 
+            const currentSec = Math.floor(actualMs / 1000); 
+            if (mode === 'minus' && currentSec !== lastAnnouncedSec) { 
+                if (currentSec === 0) { 
+                    explode(150, '#ff3b30'); 
+                    speak(translations[currentLang].timeOver); 
+                    sendNotification("TIME BANK", translations[currentLang].timeOverMsg); 
+                } else if (currentSec === 300 || currentSec === 60) { 
+                    const mins = currentSec / 60; 
+                    speak(translations[currentLang].left + " " + mins + " " + translations[currentLang].minutes); 
+                } 
+                lastAnnouncedSec = currentSec; 
+            } 
+        }
+
         function showHowTo() { document.getElementById('howToModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
         function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
         function showParentsModal() { document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
@@ -709,37 +787,47 @@
         function updateUI() {
             const absMs = Math.abs(Math.round(visualMs));
             const h = Math.floor(absMs / 3600000), m = Math.floor((absMs % 3600000) / 60000), s = Math.floor((absMs % 60000) / 1000), ms = Math.floor((absMs % 1000) / 10);
-            document.getElementById('timeMain').innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            document.getElementById('timeSubM').innerText = String(s).padStart(2, '0');
-            document.getElementById('timeSubMs').innerText = String(ms).padStart(2, '0');
+            
+            const timeMainEl = document.getElementById('timeMain');
+            const timeSubMEl = document.getElementById('timeSubM');
+            const timeSubMsEl = document.getElementById('timeSubMs');
+            
+            if (timeMainEl) timeMainEl.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            if (timeSubMEl) timeSubMEl.innerText = String(s).padStart(2, '0');
+            if (timeSubMsEl) timeSubMsEl.innerText = String(ms).padStart(2, '0');
+            
             const isNegative = actualMs < 0;
             const label = document.getElementById('statusLabel');
-            const timeDisplay = document.getElementById('timeMain');
             let textColor = 'white';
 
             if (isNegative) { 
                 textColor = '#ff3b30'; 
-                timeDisplay.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; 
             } else if (mode === 'minus') { 
                 textColor = '#ff66ff'; 
-                timeDisplay.style.textShadow = "0 0 15px rgba(255, 102, 255, 0.6)"; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 102, 255, 0.6)"; 
             } else if (isSupernovaMode) { 
                 textColor = '#FFD700'; 
-                timeDisplay.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; 
             } else { 
-                timeDisplay.style.textShadow = "none"; 
+                if (timeMainEl) timeMainEl.style.textShadow = "none"; 
             }
 
-            if (isNegative) { 
-                label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); 
-            } else if (mode === 'plus') { 
-                label.innerText = translations[currentLang].charging; label.style.color = isSupernovaMode ? '#FFD700' : 'white'; label.classList.add('pulse-text'); 
-            } else if (mode === 'minus') { 
-                label.innerText = translations[currentLang].using; label.style.color = '#ff66ff'; label.classList.add('pulse-text'); 
-            } else { 
-                label.innerText = ""; label.classList.remove('pulse-text'); 
+            if (label) {
+                if (isNegative) { 
+                    label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); 
+                } else if (mode === 'plus') { 
+                    label.innerText = translations[currentLang].charging; label.style.color = isSupernovaMode ? '#FFD700' : 'white'; label.classList.add('pulse-text'); 
+                } else if (mode === 'minus') { 
+                    label.innerText = translations[currentLang].using; label.style.color = '#ff66ff'; label.classList.add('pulse-text'); 
+                } else { 
+                    label.innerText = ""; label.classList.remove('pulse-text'); 
+                }
             }
-            document.getElementById('alertOverlay').classList.toggle('alert-active', isNegative);
+            
+            const alertOverlay = document.getElementById('alertOverlay');
+            if (alertOverlay) alertOverlay.classList.toggle('alert-active', isNegative);
+            
             document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = textColor);
         }
 
@@ -802,6 +890,7 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
+        // 初期起動
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
