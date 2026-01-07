@@ -26,8 +26,8 @@
             font-family: 'Inter', 'Helvetica Neue', sans-serif;
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; overflow-x: hidden; 
-            /* 修正点：一律のnoneを外し、要素ごとに制御する */
+            min-height: 100vh; margin: 0; overflow-x: hidden;
+            /* 基本は選択不可だが、inputだけは例外にする設定 */
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
@@ -61,7 +61,6 @@
         }
         .menu-trigger span { width: 100%; height: 2px; background: white; transition: 0.3s; }
         
-        /* インストール案内チップ */
         .install-guide {
             position: fixed;
             top: calc(var(--safe-top) + 65px);
@@ -123,12 +122,14 @@
         .support-msg b { color: #fff; border-bottom: 1px solid var(--accent-color); }
         .dev-badge { display: inline-block; background: rgba(0, 242, 255, 0.15); color: var(--accent-color); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid rgba(0, 242, 255, 0.3); }
 
-        /* 入力エリアの修正（重要） */
+        /* 入力エリアの修正版 */
         .pass-input {
             width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
             color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
-            font-size: 16px; /* iOSでの自動ズーム防止のために16px以上に設定 */
-            user-select: text !important; /* 入力を強制許可 */
+            font-size: 16px; /* 16px未満だとiOSでズームされるのを防ぐ */
+            
+            /* 入力可能にするための重要設定 */
+            user-select: text !important;
             -webkit-user-select: text !important;
             appearance: none; -webkit-appearance: none;
         }
@@ -285,7 +286,7 @@
         <div class="menu-section">
             <h3 id="codeHeader">SUPPORT CODE</h3>
             <div id="codeDesc" style="font-size: 11px; margin-bottom: 10px; color: #888; line-height: 1.4;"></div>
-            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" autocomplete="off" autocapitalize="none" inputmode="text">
             <div class="auth-btns">
                 <button class="btn-auth" onclick="checkPass()">認証</button>
                 <button id="resetModeBtn" class="btn-reset-mode" onclick="deactivateSupernovaMode(true)">通常モード</button>
@@ -367,6 +368,11 @@
         const PASS_CODE = "chucktheworld"; 
         let isSupernovaMode = false;
         let shootingStarProbability = 1 / (60 * 30);
+
+        // iOS PWAでの入力修正: タップ時に明示的にフォーカスさせる
+        document.getElementById('passInput').addEventListener('touchstart', function(e) {
+            this.focus();
+        }, {passive: true});
 
         if ("Notification" in window) {
             if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -527,7 +533,7 @@
                 msg.innerHTML = translations[currentLang].supporterOk;
                 speak(currentLang === 'ja' ? "スーパーノヴァモード、起動。応援ありがとう！" : "Special mode activated. Thank you!");
                 document.getElementById('passInput').value = "";
-                document.getElementById('passInput').blur(); // フォーカスを外してキーボードを閉じる
+                document.getElementById('passInput').blur(); 
             } else {
                 msg.innerText = currentLang === 'ja' ? "コードが違います" : "Invalid Code";
             }
@@ -796,11 +802,6 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
-        // 追加の修正：入力フィールドをクリックした際に確実にフォーカスさせる
-        document.getElementById('passInput').addEventListener('touchstart', function(e) {
-            this.focus();
-        }, {passive: true});
-
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
