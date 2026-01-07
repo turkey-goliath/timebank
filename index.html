@@ -91,12 +91,14 @@
         .side-menu {
             position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
             background: rgba(10, 10, 26, 0.95); backdrop-filter: blur(15px);
-            z-index: 200; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 2000; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             padding: 80px 30px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.1);
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 150; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
         
         .menu-section { margin-bottom: 30px; }
         .menu-section h3 { font-size: 11px; color: var(--accent-color); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; opacity: 0.8; }
@@ -118,11 +120,16 @@
         .support-msg b { color: #fff; border-bottom: 1px solid var(--accent-color); }
         .dev-badge { display: inline-block; background: rgba(0, 242, 255, 0.15); color: var(--accent-color); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid rgba(0, 242, 255, 0.3); }
 
+        /* 入力エリアの修正 */
         .pass-input {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
+            width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
+            color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; outline: none;
+            font-size: 16px; /* iOSでの自動ズーム防止 */
+            user-select: text; /* 入力を許可 */
+            -webkit-user-select: text;
+            appearance: none; -webkit-appearance: none;
         }
-        .pass-input:focus { border-color: var(--accent-color); }
+        .pass-input:focus { border-color: var(--accent-color); background: rgba(255,255,255,0.15); }
         
         .auth-btns { display: flex; gap: 8px; }
         .btn-auth { background: var(--accent-color); color: #000; border: none; flex: 2; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -151,7 +158,7 @@
             width: 85%; max-width: 420px; padding: 30px;
             border-radius: 20px; border: 2px solid var(--accent-color);
             text-align: center; 
-            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(var(--accent-rgb, 0, 242, 255), 0.3);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(0, 242, 255, 0.3);
             max-height: 85vh; overflow-y: auto;
             box-sizing: border-box;
         }
@@ -275,7 +282,7 @@
         <div class="menu-section">
             <h3 id="codeHeader">SUPPORT CODE</h3>
             <div id="codeDesc" style="font-size: 11px; margin-bottom: 10px; color: #888; line-height: 1.4;"></div>
-            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力">
+            <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" novalidate>
             <div class="auth-btns">
                 <button class="btn-auth" onclick="checkPass()">認証</button>
                 <button id="resetModeBtn" class="btn-reset-mode" onclick="deactivateSupernovaMode(true)">通常モード</button>
@@ -517,6 +524,7 @@
                 msg.innerHTML = translations[currentLang].supporterOk;
                 speak(currentLang === 'ja' ? "スーパーノヴァモード、起動。応援ありがとう！" : "Special mode activated. Thank you!");
                 document.getElementById('passInput').value = "";
+                document.getElementById('passInput').blur(); // フォーカスを外してキーボードを閉じる
             } else {
                 msg.innerText = currentLang === 'ja' ? "コードが違います" : "Invalid Code";
             }
