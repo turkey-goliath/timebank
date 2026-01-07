@@ -264,6 +264,7 @@
         <div class="menu-section">
             <h3 id="howToHeader">GUIDE</h3>
             <div id="btnGuide" class="menu-item" onclick="showHowTo()">使い方を見る</div>
+            <div id="btnAndroid" class="menu-item" onclick="showAndroidModal()">Androidユーザー様へ</div>
         </div>
 
         <div class="menu-section">
@@ -315,6 +316,15 @@
             <div id="parentsContent"></div>
             <div style="text-align: center; margin-top: 20px;">
                 <button class="close-btn" onclick="closeParentsModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="androidModal" class="custom-modal">
+        <div class="modal-content" style="text-align: left;">
+            <div id="androidContent"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="close-btn" onclick="closeAndroidModal()">CLOSE</button>
             </div>
         </div>
     </div>
@@ -394,7 +404,7 @@
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
                 voiceUse: "時間エネルギーを使用します", voiceCharge: "時間エネルギーをチャージします",
-                devHeader: "DEVELOPMENT", guideBtn: "使い方を見る", parentsHeader: "FOR PARENTS", parentsBtn: "保護者の方へ",
+                devHeader: "DEVELOPMENT", guideBtn: "使い方を見る", androidBtn: "Androidユーザー様へ", parentsHeader: "FOR PARENTS", parentsBtn: "保護者の方へ",
                 supportBtn: "TimeBankを100円で応援する！",
                 supportMsg: `<div class="dev-badge">ただいま親子で開発中！</div><br>このアプリは<b>無料で使えます。</b><br><br>役に立つものを作って応援してもらえる喜びを、我が子に教育として感じてもらえたら嬉しいので「いいな」「役に立ったな」と思ったら応援してもらえると嬉しいです。今後もいろいろなアイデアを出し合って改善していく予定です！<br><br><span style="font-size:11px; color:#aaa;">※リンク先の「ファンレターを送る」から応援いただけます。お礼画面で「合言葉」が表示されます！</span>`,
                 codeDesc: "TimeBankを100円で応援すると色やアニメーションが変わる特別モードが使えます。",
@@ -404,6 +414,21 @@
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギーを解放</span><p class="step-desc">遊びの時間は「ー使う」を起動。貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
                     <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">「1：1」の均衡</span><p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p></div>
                     <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
+                androidContent: `
+                    <h2 style="color:var(--accent-color); font-size:18px; margin-bottom:15px; text-align:center;">Androidユーザー様へ</h2>
+                    <p style="font-size:12px; line-height:1.6; color:#ccc; margin-bottom:15px;">
+                        一部のAndroid端末（OPPO、Google Pixel、Galaxyなど）でアプリが「動かない」「音がでない」とご連絡をいただきました。その場合は以下をお試しください。
+                    </p>
+                    <div style="font-size:13px; line-height:1.6; color:#ccc;">
+                        <b style="color:#fff;">・ブラウザは「Chrome」で！</b><br>
+                        標準ブラウザやLINE内ブラウザでは正しく動かない場合があります。Google Chromeでの利用を推奨します。<br><br>
+                        <b style="color:#fff;">・ホーム画面に追加してアプリ化</b><br>
+                        Chromeのメニュー（右上の「︙」）から<b>「ホーム画面に追加」</b>すると、全画面で快適に操作できます。<br><br>
+                        <b style="color:#fff;">・音声について</b><br>
+                        音量設定を確認し、右上の「ベル」アイコンを数回タップしてみてください。(Androidの制限により、システム音声が出ない場合があります。)<br><br>
+                        <b style="color:#fff;">・困ったときは再読み込み</b><br>
+                        動作がおかしくなっても、ページを更新（リロード）すると直る場合があります。
+                    </div>`,
                 parentsBody: `
                     <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:20px; text-align:center;">制作の想い</h2>
                     <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
@@ -433,7 +458,7 @@
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
                 voiceUse: "Starting to use time", voiceCharge: "Starting to charge time",
-                devHeader: "DEVELOPMENT", guideBtn: "GUIDE", parentsHeader: "FOR PARENTS", parentsBtn: "For Parents",
+                devHeader: "DEVELOPMENT", guideBtn: "GUIDE", androidBtn: "For Android Users", parentsHeader: "FOR PARENTS", parentsBtn: "For Parents",
                 supportBtn: "Support TimeBank!",
                 supportMsg: `<div class="dev-badge">Now under parent-child development!</div><br>This app is <b>free to use.</b><br><br>We want our child to experience the joy of creating something useful and being supported as part of their education. If you think "this is great" or "this was helpful," we would be very happy to have your support!<br><br><span style="font-size:11px; color:#aaa;">*You can support via "Send Fan Letter" at the link. The "Secret Code" will appear on the thank-you screen!</span>`,
                 codeDesc: "By supporting TimeBank, you can unlock a Special Mode with unique colors and animations.",
@@ -443,6 +468,21 @@
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">RELEASE ENERGY</span><p class="step-desc">When it's play time, start "USE". Using only what you've saved is the rule of the universe!</p></div>
                     <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">EQUILIBRIUM 1:1</span><p class="step-desc">Balance learning and playing equally. This is the path to becoming a True Time Master.</p></div>
                     <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
+                androidContent: `
+                    <h2 style="color:var(--accent-color); font-size:18px; margin-bottom:15px; text-align:center;">For Android Users</h2>
+                    <p style="font-size:12px; line-height:1.6; color:#ccc; margin-bottom:15px;">
+                        Some Android users (OPPO, Pixel, Galaxy, etc.) reported issues. Please try:
+                    </p>
+                    <div style="font-size:13px; line-height:1.6; color:#ccc;">
+                        <b style="color:#fff;">- Use "Chrome"</b><br>
+                        May not work in default or LINE browsers. Use Google Chrome.<br><br>
+                        <b style="color:#fff;">- Add to Home Screen</b><br>
+                        Menu (top-right "︙") -> <b>"Add to Home Screen"</b> for full experience.<br><br>
+                        <b style="color:#fff;">- Sound Issues</b><br>
+                        Check volume and tap the "Bell" icon a few times.<br><br>
+                        <b style="color:#fff;">- Refresh</b><br>
+                        If anything feels off, just reload the page.
+                    </div>`,
                 parentsBody: `
                     <h2 style="color:var(--accent-color); font-size:20px; margin-bottom:20px; text-align:center;">Our Philosophy</h2>
                     <p style="font-size:13px; line-height:1.6; color:#ccc; margin-bottom:20px;">
@@ -481,10 +521,12 @@
             document.getElementById('devHeader').innerText = t.devHeader;
             document.getElementById('devDesc').innerHTML = t.devDesc;
             document.getElementById('btnGuide').innerText = t.guideBtn;
+            document.getElementById('btnAndroid').innerText = t.androidBtn;
             document.getElementById('parentsHeader').innerText = t.parentsHeader;
             document.getElementById('btnParents').innerText = t.parentsBtn;
             document.getElementById('parentsContent').innerHTML = t.parentsBody;
             document.getElementById('howToContent').innerHTML = t.guideContent;
+            document.getElementById('androidContent').innerHTML = t.androidContent;
             document.getElementById('resetModeBtn').innerText = t.backNormal;
             document.getElementById('btnSupportText').innerText = t.supportBtn;
             document.getElementById('supportMsgText').innerHTML = t.supportMsg;
@@ -774,6 +816,10 @@
         function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
         function showParentsModal() { document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
         function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
+
+        // Android Modal Logic
+        function showAndroidModal() { document.getElementById('androidModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeAndroidModal() { document.getElementById('androidModal').style.display = 'none'; }
 
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
