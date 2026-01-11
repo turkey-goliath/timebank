@@ -6,11 +6,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <meta property="og:title" content="Time Bank - 未来をつくる時間銀行">
-    <meta property="og:description" content="Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://turkey-goliath.github.io/timebank/">
-    
     <title>Time Bank | 未来をつくる時間銀行</title>
     <style>
         :root {
@@ -18,6 +13,11 @@
             --accent-color: #00f2ff;
             --supernova-glow: 0 0 20px rgba(0, 242, 255, 0.5);
             --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            /* モードカラー設定 */
+            --rabbit-color: #ff007f; /* ネオンピンク */
+            --turtle-color: #00ff7f; /* グリーン */
+            --using-color: #bc13fe;  /* 紫（消費） */
+            --alert-color: #ff3b30;  /* 赤（不足） */
         }
 
         body {
@@ -136,6 +136,15 @@
         .btn-reset-mode { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); flex: 1.5; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; transition: 0.3s; display: none; }
         .btn-reset-mode.show { display: block; }
 
+        .speed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .speed-item { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 10px; padding: 12px 0; text-align: center; transition: 0.3s; cursor: pointer;
+        }
+        .speed-item.active { background: rgba(0, 242, 255, 0.1); border-color: var(--accent-color); }
+        .speed-item .icon { font-size: 18px; display: block; margin-bottom: 4px; }
+        .speed-item .val { font-size: 11px; font-weight: bold; color: #fff; }
+
         .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
         .share-btn { 
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
@@ -183,12 +192,28 @@
         .is-muted .mute-line { display: block; }
 
         #alertOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        
+        /* アニメーション定義 */
         @keyframes pulse-red {
             0% { box-shadow: inset 0 0 40px rgba(255, 59, 48, 0); }
             50% { box-shadow: inset 0 0 120px rgba(255, 59, 48, 0.4); }
             100% { box-shadow: inset 0 0 40px rgba(255, 59, 48, 0); }
         }
         .alert-active { animation: pulse-red 2s infinite ease-in-out; }
+
+        @keyframes pulse-green {
+            0% { box-shadow: inset 0 0 40px rgba(0, 255, 127, 0); }
+            50% { box-shadow: inset 0 0 100px rgba(0, 255, 127, 0.35); }
+            100% { box-shadow: inset 0 0 40px rgba(0, 255, 127, 0); }
+        }
+        .turtle-active { animation: pulse-green 3s infinite ease-in-out; }
+
+        @keyframes pulse-pink {
+            0% { box-shadow: inset 0 0 40px rgba(255, 0, 127, 0); }
+            50% { box-shadow: inset 0 0 100px rgba(255, 0, 127, 0.35); }
+            100% { box-shadow: inset 0 0 40px rgba(255, 0, 127, 0); }
+        }
+        .rabbit-active { animation: pulse-pink 2s infinite ease-in-out; }
 
         .app-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 900px; margin-top: 40px; }
         .quick-controls { display: flex; flex-direction: column; gap: 12px; }
@@ -292,6 +317,22 @@
         </div>
 
         <div class="menu-section">
+            <h3 id="speedHeader">TIME SPEED</h3>
+            <div class="speed-grid">
+                <div id="speedRabbit" class="speed-item" onclick="setTimeSpeed(1.2)">
+                    <span class="icon">🐰</span><span class="val">x1.2</span>
+                </div>
+                <div id="speedNormal" class="speed-item active" onclick="setTimeSpeed(1.0)">
+                    <span class="icon" style="opacity:0;">-</span><span class="val">x1.0</span>
+                </div>
+                <div id="speedTurtle" class="speed-item" onclick="setTimeSpeed(0.5)">
+                    <span class="icon">🐢</span><span class="val">x0.5</span>
+                </div>
+            </div>
+            <div id="speedDesc" style="font-size: 11px; margin-top: 8px; color: #888; line-height: 1.4;"></div>
+        </div>
+
+        <div class="menu-section">
             <h3 id="shareHeader">SHARE</h3>
             <div class="share-grid">
                 <a id="shareX" href="#" target="_blank" class="share-btn" title="X">
@@ -374,6 +415,7 @@
         const PASS_CODE = "chucktheworld"; 
         let isSupernovaMode = false;
         let shootingStarProbability = 1 / (60 * 30);
+        let chargeSpeed = 1.0;
 
         // iOS PWA & Android 修正
         const passInputField = document.getElementById('passInput');
@@ -403,15 +445,19 @@
         const translations = {
             ja: {
                 use: "使う", charge: "貯める", reset: "リセット", using: "使用中", charging: "チャージ中", shortage: "時間が足りません",
-                voiceUse: "時間エネルギーを使用します", voiceCharge: "時間エネルギーをチャージします",
+                voiceUse: "時間エネルギーを使用します", 
+                voiceChargeNormal: "時間エネルギーをチャージします",
+                voiceChargeTurtle: "亀さんモードで時間エネルギーをチャージします",
+                voiceChargeRabbit: "うさぎさんモードで時間エネルギーをチャージします",
                 devHeader: "DEVELOPMENT", guideBtn: "使い方を見る", androidBtn: "Androidユーザー様へ", parentsHeader: "FOR PARENTS", parentsBtn: "保護者の方へ",
                 supportBtn: "TimeBankを100円で応援する！",
                 supportMsg: `<div class="dev-badge">ただいま親子で開発中！</div><br>このアプリは<b>無料で使えます。</b><br><br>役に立つものを作って応援してもらえる喜びを、我が子に教育として感じてもらえたら嬉しいので「いいな」「役に立ったな」と思ったら応援してもらえると嬉しいです。今後もいろいろなアイデアを出し合って改善していく予定です！<br><br><span style="font-size:11px; color:#aaa;">※リンク先の「ファンレターを送る」から応援いただけます。お礼画面で「合言葉」が表示されます！</span>`,
                 codeDesc: "TimeBankを100円で応援すると色やアニメーションが変わる特別モードが使えます。",
                 devDesc: "<span class='desc-highlight'>「未来をつくる時間銀行」</span>Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
+                speedHeader: "TIME SPEED", speedDesc: "「貯める」時のスピードが変わります。",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">エネルギーを貯める</span><p class="step-desc">勉強や読書をするときは「＋貯める」を起動.未来の遊びエネルギーを蓄えよう。</p></div>
-                    <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギーを解放</span><p class="step-desc">遊びの時間は「ー使う」を起動。貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
+                    <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギーを解放</span><p class="step-desc">遊びの時間は「ー使う」を起動.貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
                     <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">「1：1」の均衡</span><p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p></div>
                     <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
                 androidContent: `
@@ -457,12 +503,16 @@
             },
             en: {
                 use: "USE", charge: "CHARGE", reset: "RESET", using: "USING", charging: "CHARGING", shortage: "TIME SHORTAGE",
-                voiceUse: "Starting to use time", voiceCharge: "Starting to charge time",
+                voiceUse: "Starting to use time", 
+                voiceChargeNormal: "Starting to charge time",
+                voiceChargeTurtle: "Charging time in Turtle mode",
+                voiceChargeRabbit: "Charging time in Rabbit mode",
                 devHeader: "DEVELOPMENT", guideBtn: "GUIDE", androidBtn: "For Android Users", parentsHeader: "FOR PARENTS", parentsBtn: "For Parents",
                 supportBtn: "Support TimeBank!",
                 supportMsg: `<div class="dev-badge">Now under parent-child development!</div><br>This app is <b>free to use.</b><br><br>We want our child to experience the joy of creating something useful and being supported as part of their education. If you think "this is great" or "this was helpful," we would be very happy to have your support!<br><br><span style="font-size:11px; color:#aaa;">*You can support via "Send Fan Letter" at the link. The "Secret Code" will appear on the thank-you screen!</span>`,
                 codeDesc: "By supporting TimeBank, you can unlock a Special Mode with unique colors and animations.",
                 devDesc: "<span class='desc-highlight'>\"Time Bank | Banking your future\"</span>Time Bank visualizes time as 'saving' and 'spending,' helping children manage their daily activities like a game.",
+                speedHeader: "TIME SPEED", speedDesc: "Changes the speed when 'Charging'.",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">CHARGE ENERGY</span><p class="step-desc">When studying or reading, start "CHARGE". Store up energy for your future play time!</p></div>
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">RELEASE ENERGY</span><p class="step-desc">When it's play time, start "USE". Using only what you've saved is the rule of the universe!</p></div>
@@ -534,11 +584,32 @@
             document.getElementById('passInput').placeholder = t.passPlaceholder;
             document.querySelector('.btn-auth').innerText = t.authBtn;
             document.getElementById('installText').innerText = t.installGuide;
+            document.getElementById('speedHeader').innerText = t.speedHeader;
+            document.getElementById('speedDesc').innerText = t.speedDesc;
             
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
             updateShareLinks();
             updateUI();
+        }
+
+        function setTimeSpeed(speed) {
+            chargeSpeed = speed;
+            document.getElementById('speedRabbit').classList.toggle('active', speed === 1.2);
+            document.getElementById('speedNormal').classList.toggle('active', speed === 1.0);
+            document.getElementById('speedTurtle').classList.toggle('active', speed === 0.5);
+            
+            if (speed === 1.2) {
+                speak(currentLang === 'ja' ? "うさぎさんモード" : "Rabbit mode");
+            } else if (speed === 0.5) {
+                speak(currentLang === 'ja' ? "亀さんモード" : "Turtle mode");
+            } else {
+                speak(currentLang === 'ja' ? "通常モード" : "Normal mode");
+            }
+            if (mode === 'plus') {
+                baseMs = actualMs;
+                startTime = Date.now();
+            }
         }
 
         function checkInstallStatus() {
@@ -623,7 +694,8 @@
 
         const cyberGradients = [['#00f2ff', '#0066ff'], ['#00d4ff', '#0044ff'], ['#7000ff', '#4b0082'], ['#ff00f2', '#b000ff']];
         const novaGradients = [['#FFFFFF', '#FFD700'], ['#FFD700', '#FFA500'], ['#FFFACD', '#DAA520'], ['#FFD700', '#B8860B']];
-        const usingGradients = [['#ff00ff', '#880088'], ['#ff3399', '#990033'], ['#ff0066', '#880033'], ['#cc00ff', '#660099'], ['#ff66cc', '#cc3399'], ['#ff00cc', '#660066']];
+        const usingGradients = [['#bc13fe', '#7a0cc0'], ['#9d0ff0', '#6009a0'], ['#d118ff', '#850fc0']]; 
+        const rabbitGradients = [['#ff007f', '#c00060'], ['#ff3399', '#c02673'], ['#ff0066', '#c0004d']]; 
 
         let stars = [];
         let shootingStars = [];
@@ -698,7 +770,8 @@
             }
             draw() { 
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                if (mode === 'minus') ctx.fillStyle = '#ff66ff';
+                if (mode === 'minus') ctx.fillStyle = '#bc13fe'; 
+                else if (mode === 'plus' && chargeSpeed === 1.2) ctx.fillStyle = '#ff007f'; 
                 else if (isSupernovaMode) ctx.fillStyle = '#FFFACD';
                 else ctx.fillStyle = '#FFFFFF';
                 ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; 
@@ -707,15 +780,13 @@
 
         function explode(count, color) { for (let i = 0; i < count; i++) { particles.push(new Particle('explode', color)); } }
         
-        // localStorage 安全な保存
         function saveState() { 
             try {
-                const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs }; 
+                const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs, chargeSpeed }; 
                 localStorage.setItem('timeBankState_v4', JSON.stringify(state)); 
             } catch(e) { console.warn("Could not save state"); }
         }
 
-        // localStorage 安全な読み込み
         function loadState() { 
             try {
                 if (localStorage.getItem('timeBankSupernova') === 'true') activateSupernovaMode(); 
@@ -723,34 +794,44 @@
                 if (saved) { 
                     const state = JSON.parse(saved); 
                     actualMs = state.actualMs || 0; 
+                    // 読み込み時にスピードをx1.0に固定するリクエストへの対応
+                    setTimeSpeed(1.0);
                     if (state.mode && state.startTime) { 
                         baseMs = state.baseMs || actualMs; 
                         startTime = state.startTime; 
                         const elapsed = Date.now() - startTime; 
-                        actualMs = baseMs + (state.mode === 'plus' ? elapsed : -elapsed); 
+                        const adjustedElapsed = (state.mode === 'plus') ? elapsed * chargeSpeed : elapsed;
+                        actualMs = baseMs + (state.mode === 'plus' ? adjustedElapsed : -adjustedElapsed); 
                         startTimer(state.mode, true); 
                     } 
-                } 
+                } else {
+                    setTimeSpeed(1.0); // 初回起動も1.0
+                }
             } catch(e) { console.warn("Could not load state"); }
         }
         
         function startTimer(newMode, isFromLoad = false) { 
             if (timerId) cancelAnimationFrame(timerId); 
             mode = newMode; 
-            
             if (!isFromLoad) {
-                if (mode === 'plus') speak(translations[currentLang].voiceCharge);
-                else if (mode === 'minus') speak(translations[currentLang].voiceUse);
-                
+                if (mode === 'plus') {
+                    if (chargeSpeed === 0.5) speak(translations[currentLang].voiceChargeTurtle);
+                    else if (chargeSpeed === 1.2) speak(translations[currentLang].voiceChargeRabbit);
+                    else speak(translations[currentLang].voiceChargeNormal);
+                } else if (mode === 'minus') {
+                    speak(translations[currentLang].voiceUse);
+                }
                 baseMs = actualMs; 
                 startTime = Date.now(); 
             } 
-            
             if (pauseBtn) pauseBtn.classList.add('show'); 
             saveState(); 
             const tick = () => { 
                 const now = Date.now(); 
-                const elapsed = now - startTime; 
+                let elapsed = now - startTime; 
+                if (mode === 'plus') {
+                    elapsed = elapsed * chargeSpeed;
+                }
                 actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed); 
                 const spawnRate = isSupernovaMode ? 0.5 : 0.3; 
                 if (mode === 'plus' && Math.random() > (1 - spawnRate)) particles.push(new Particle('in')); 
@@ -784,14 +865,12 @@
             if (toggleBtn) toggleBtn.classList.toggle('is-muted', isMuted); 
         }
 
-        // 音声合成の安全な実行
         function speak(text) { 
             if (!isMuted && 'speechSynthesis' in window) { 
                 try {
                     window.speechSynthesis.cancel(); 
                     const u = new SpeechSynthesisUtterance(text); 
                     u.lang = translations[currentLang].voiceLang; 
-                    u.onerror = (e) => console.error("Speech error", e);
                     window.speechSynthesis.speak(u); 
                 } catch(e) { console.error("Speech Synthesis failed", e); }
             } 
@@ -816,15 +895,14 @@
         function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
         function showParentsModal() { document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
         function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
-
-        // Android Modal Logic
         function showAndroidModal() { document.getElementById('androidModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
         function closeAndroidModal() { document.getElementById('androidModal').style.display = 'none'; }
 
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
             const rotSpeed = isSupernovaMode ? 1.5 : 1.0;
-            if (mode === 'plus') rotationAngle += 0.008 * rotSpeed;
+            const speedFactor = (mode === 'plus') ? chargeSpeed : 1.0;
+            if (mode === 'plus') rotationAngle += 0.008 * rotSpeed * speedFactor;
             else if (mode === 'minus') rotationAngle -= 0.015 * rotSpeed;
             else rotationAngle += 0.002;
             drawStars(); updateUI(); drawTimer(); requestAnimationFrame(animate);
@@ -833,25 +911,31 @@
         function updateUI() {
             const absMs = Math.abs(Math.round(visualMs));
             const h = Math.floor(absMs / 3600000), m = Math.floor((absMs % 3600000) / 60000), s = Math.floor((absMs % 60000) / 1000), ms = Math.floor((absMs % 1000) / 10);
-            
             const timeMainEl = document.getElementById('timeMain');
             const timeSubMEl = document.getElementById('timeSubM');
             const timeSubMsEl = document.getElementById('timeSubMs');
-            
             if (timeMainEl) timeMainEl.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             if (timeSubMEl) timeSubMEl.innerText = String(s).padStart(2, '0');
             if (timeSubMsEl) timeSubMsEl.innerText = String(ms).padStart(2, '0');
             
             const isNegative = actualMs < 0;
+            const isTurtle = (mode === 'plus' && chargeSpeed === 0.5);
+            const isRabbit = (mode === 'plus' && chargeSpeed === 1.2);
             const label = document.getElementById('statusLabel');
             let textColor = 'white';
-
+            
             if (isNegative) { 
                 textColor = '#ff3b30'; 
                 if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; 
             } else if (mode === 'minus') { 
-                textColor = '#ff66ff'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 102, 255, 0.6)"; 
+                textColor = '#bc13fe'; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(188, 19, 254, 0.6)"; 
+            } else if (isTurtle) {
+                textColor = '#00ff7f'; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(0, 255, 127, 0.5)";
+            } else if (isRabbit) {
+                textColor = '#ff007f'; 
+                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 0, 127, 0.5)";
             } else if (isSupernovaMode) { 
                 textColor = '#FFD700'; 
                 if (timeMainEl) timeMainEl.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; 
@@ -863,17 +947,22 @@
                 if (isNegative) { 
                     label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); 
                 } else if (mode === 'plus') { 
-                    label.innerText = translations[currentLang].charging; label.style.color = isSupernovaMode ? '#FFD700' : 'white'; label.classList.add('pulse-text'); 
+                    label.innerText = translations[currentLang].charging; 
+                    label.style.color = isTurtle ? '#00ff7f' : (isRabbit ? '#ff007f' : (isSupernovaMode ? '#FFD700' : 'white')); 
+                    label.classList.add('pulse-text'); 
                 } else if (mode === 'minus') { 
-                    label.innerText = translations[currentLang].using; label.style.color = '#ff66ff'; label.classList.add('pulse-text'); 
+                    label.innerText = translations[currentLang].using; label.style.color = '#bc13fe'; label.classList.add('pulse-text'); 
                 } else { 
                     label.innerText = ""; label.classList.remove('pulse-text'); 
                 }
             }
-            
             const alertOverlay = document.getElementById('alertOverlay');
-            if (alertOverlay) alertOverlay.classList.toggle('alert-active', isNegative);
-            
+            if (alertOverlay) {
+                alertOverlay.classList.remove('alert-active', 'turtle-active', 'rabbit-active');
+                if (isNegative) alertOverlay.classList.add('alert-active');
+                else if (isTurtle) alertOverlay.classList.add('turtle-active');
+                else if (isRabbit) alertOverlay.classList.add('rabbit-active');
+            }
             document.querySelectorAll('.time-main, .time-sub-m').forEach(el => el.style.color = textColor);
         }
 
@@ -884,35 +973,36 @@
             const isUsingMode = (mode === 'minus');
             const isChargingMode = (mode === 'plus');
             const isNegative = (actualMs < 0);
-            
-            const pulseRate = (isUsingMode || isNegative) ? 400 : 800;
+            const isTurtle = (isChargingMode && chargeSpeed === 0.5);
+            const isRabbit = (isChargingMode && chargeSpeed === 1.2);
+
+            const pulseRate = (isUsingMode || isNegative || isTurtle || isRabbit) ? 400 : 800;
             const basePulse = (Math.sin(time / pulseRate) + 1) / 2;
-            
             let heartBeat = 0;
             if (isSupernovaMode && isChargingMode) {
                 const t = (time % 1000) / 1000; 
                 heartBeat = Math.pow(Math.sin(t * Math.PI), 10) * 0.8 + Math.pow(Math.sin(t * Math.PI - 0.5), 10) * 0.5;
             }
-
             const baseRadius = 110;
             const ringSpacing = 16;
-
             for (let i = 0; i < 6; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, baseRadius + (i * ringSpacing), 0, Math.PI * 2);
                 ctx.strokeStyle = isSupernovaMode ? `rgba(255, 215, 0, 0.08)` : `rgba(255, 255, 255, 0.03)`;
                 ctx.stroke();
             }
             const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
-            
             let activeGradients;
             if (isNegative) {
                 activeGradients = [['#ff0000', '#880000']];
             } else if (isUsingMode) {
-                activeGradients = usingGradients;
+                activeGradients = usingGradients; 
+            } else if (isTurtle) {
+                activeGradients = [['#00ff7f', '#008844']]; 
+            } else if (isRabbit) {
+                activeGradients = rabbitGradients; 
             } else {
                 activeGradients = isSupernovaMode ? novaGradients : cyberGradients;
             }
-
             for (let i = 0; i < 6; i++) {
                 const radius = baseRadius + (i * ringSpacing), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
@@ -921,13 +1011,10 @@
                     ctx.beginPath();
                     if (totalSeconds >= 0) ctx.arc(0, 0, radius, 0, Math.PI * 2 * progress);
                     else ctx.arc(0, 0, radius, 0, -Math.PI * 2 * progress, true);
-                    
                     const baseWidth = 3.0 + (basePulse * 2.0);
                     const baseShadow = (isSupernovaMode ? 15 : 8) + (basePulse * 10);
-                    
                     ctx.lineWidth = baseWidth + (heartBeat * 6.0); 
                     ctx.shadowBlur = baseShadow + (heartBeat * 25); 
-                    
                     const colorPair = activeGradients[i % activeGradients.length];
                     ctx.shadowColor = colorPair[0]; ctx.strokeStyle = colorPair[0];
                     ctx.lineCap = 'round'; ctx.stroke(); ctx.restore();
@@ -936,7 +1023,6 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
-        // 初期起動
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
