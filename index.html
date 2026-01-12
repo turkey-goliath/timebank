@@ -13,11 +13,10 @@
             --accent-color: #00f2ff;
             --supernova-glow: 0 0 20px rgba(0, 242, 255, 0.5);
             --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            /* モードカラー設定 */
-            --rabbit-color: #ff007f; /* ネオンピンク */
-            --turtle-color: #00ff7f; /* グリーン */
-            --using-color: #bc13fe;  /* 紫（消費） */
-            --alert-color: #ff3b30;  /* 赤（不足） */
+            --rabbit-color: #ff007f;
+            --turtle-color: #00ff7f;
+            --using-color: #bc13fe;
+            --alert-color: #ff3b30;
         }
 
         body {
@@ -108,6 +107,44 @@
         .desc-text { font-size: 13px; line-height: 1.6; color: #aaa; white-space: pre-wrap; }
         .desc-highlight { color: #fff; font-weight: bold; display: block; margin-bottom: 8px; font-size: 15px; }
 
+        /* --- LOG SECTION STYLES --- */
+        .log-status-msg { font-size: 12px; color: var(--accent-color); font-weight: bold; margin-bottom: 10px; text-align: center; min-height: 1.2em; }
+        
+        /* 1ヶ月達成用のお祝いスタイル */
+        .congratulation-bounce {
+            font-size: 14px !important;
+            animation: congrats-float 2s infinite ease-in-out, rainbow-text 3s infinite linear !important;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            display: inline-block;
+        }
+        @keyframes congrats-float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+        }
+        @keyframes rainbow-text {
+            0% { color: #ff007f; }
+            20% { color: #00f2ff; }
+            40% { color: #00ff7f; }
+            60% { color: #ffD700; }
+            80% { color: #bc13fe; }
+            100% { color: #ff007f; }
+        }
+
+        .calendar-wrap { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-day-label { font-size: 9px; color: #666; text-align: center; padding-bottom: 5px; }
+        .cal-cell { aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #444; position: relative; }
+        .cal-cell.has-date { color: #888; }
+        .cal-cell.today { border: 1px solid var(--accent-color); color: #fff; }
+        .cal-cell.plus-day { background: rgba(0, 242, 255, 0.2); color: #fff; animation: pulse-blue-lite 2s infinite; }
+        @keyframes pulse-blue-lite {
+            0%, 100% { box-shadow: inset 0 0 5px rgba(0, 242, 255, 0.3); }
+            50% { box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.6); }
+        }
+        .log-note { font-size: 10px; color: #666; line-height: 1.4; margin-top: 8px; }
+        .btn-log-view { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-top: 10px; }
+        /* ------------------------- */
+
         .support-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .btn-support-link { 
             background: var(--gold-gradient); color: #000; border: none; width: 100%; padding: 12px 10px; 
@@ -193,7 +230,6 @@
 
         #alertOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
         
-        /* アニメーション定義 */
         @keyframes pulse-red {
             0% { box-shadow: inset 0 0 40px rgba(255, 59, 48, 0); }
             50% { box-shadow: inset 0 0 120px rgba(255, 59, 48, 0.4); }
@@ -281,6 +317,18 @@
         </div>
 
         <div class="menu-section">
+            <h3 id="logHeader">TIME BANK LOG</h3>
+            <div id="logStatus" class="log-status-msg"></div>
+            <div class="calendar-wrap">
+                <div class="calendar-grid" id="calendarGrid">
+                    </div>
+                <div class="log-note" id="logNoteText">
+                    収支で貯めるが上回ると青に点滅します。クイックタイム加減算ボタンは反映されません。
+                </div>
+            </div>
+            <button class="btn-log-view" onclick="showLogModal()">ログをみる</button>
+        </div>
+        <div class="menu-section">
             <h3 id="langHeader">Language</h3>
             <div id="btnJp" class="menu-item active" onclick="setLanguage('ja')">日本語</div>
             <div id="btnEn" class="menu-item" onclick="setLanguage('en')">English</div>
@@ -317,13 +365,13 @@
         </div>
 
         <div class="menu-section">
-            <h3 id="speedHeader">TIME SPEED</h3>
+            <h3 id="speedHeader">SPEED MODE</h3>
             <div class="speed-grid">
                 <div id="speedRabbit" class="speed-item" onclick="setTimeSpeed(1.2)">
                     <span class="icon">🐰</span><span class="val">x1.2</span>
                 </div>
                 <div id="speedNormal" class="speed-item active" onclick="setTimeSpeed(1.0)">
-                    <span class="icon" style="opacity:0;">-</span><span class="val">x1.0</span>
+                    <span class="icon">📖</span><span class="val">x1.0</span>
                 </div>
                 <div id="speedTurtle" class="speed-item" onclick="setTimeSpeed(0.5)">
                     <span class="icon">🐢</span><span class="val">x0.5</span>
@@ -370,6 +418,17 @@
         </div>
     </div>
 
+    <div id="logModal" class="custom-modal">
+        <div class="modal-content" style="text-align: left;">
+            <h2 style="color:var(--accent-color); font-size:18px; text-align:center;">TIME LOG (100 DAYS)</h2>
+            <div id="logDetailList" style="margin-top:20px; font-size:12px; color:#ccc; max-height:300px; overflow-y:auto; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="close-btn" onclick="closeLogModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
     <div id="alertOverlay"></div>
 
     <div class="app-wrapper">
@@ -392,9 +451,9 @@
 
         <div class="quick-controls">
             <button class="btn-quick" onclick="addTime(1800)">+30m</button>
-            <button class="btn-quick" onclick="addTime(900)">+15m</button>
             <button class="btn-quick" onclick="addTime(300)">+5m</button>
             <button class="btn-quick" onclick="addTime(60)">+1m</button>
+            <button class="btn-quick" onclick="addTime(900)">+15m</button>
         </div>
     </div>
 
@@ -417,7 +476,148 @@
         let shootingStarProbability = 1 / (60 * 30);
         let chargeSpeed = 1.0;
 
-        // iOS PWA & Android 修正
+        // --- LOG LOGIC ---
+        let dailyLogs = {}; 
+        function loadLogs() {
+            try {
+                const saved = localStorage.getItem('timeBankDailyLogs_v1');
+                if (saved) dailyLogs = JSON.parse(saved);
+                cleanupLogs();
+                renderCalendar();
+                updateStreakInfo();
+            } catch(e) { console.warn("Load logs failed", e); }
+        }
+
+        function saveLogs() {
+            try { localStorage.setItem('timeBankDailyLogs_v1', JSON.stringify(dailyLogs)); } catch(e){}
+        }
+
+        function cleanupLogs() {
+            const keys = Object.keys(dailyLogs).sort();
+            if (keys.length > 100) {
+                const toDelete = keys.slice(0, keys.length - 100);
+                toDelete.forEach(k => delete dailyLogs[k]);
+                saveLogs();
+            }
+        }
+
+        function recordTime(mode, ms) {
+            if (ms <= 0) return;
+            const today = new Date().toISOString().split('T')[0];
+            if (!dailyLogs[today]) dailyLogs[today] = { plus: 0, minus: 0 };
+            
+            if (mode === 'plus') dailyLogs[today].plus += ms;
+            else if (mode === 'minus') dailyLogs[today].minus += ms;
+            
+            saveLogs();
+            renderCalendar();
+            updateStreakInfo();
+        }
+
+        function updateStreakInfo() {
+            const today = new Date().toISOString().split('T')[0];
+            const keys = Object.keys(dailyLogs).sort().reverse();
+            let streak = 0;
+            let current = new Date();
+            
+            for (let i = 0; i < 100; i++) {
+                const dStr = current.toISOString().split('T')[0];
+                const log = dailyLogs[dStr];
+                if (log && log.plus > log.minus) {
+                    streak++;
+                    current.setDate(current.getDate() - 1);
+                } else {
+                    if (dStr === today) {
+                        current.setDate(current.getDate() - 1);
+                        continue;
+                    }
+                    break;
+                }
+            }
+            
+            const msgEl = document.getElementById('logStatus');
+            msgEl.classList.remove('congratulation-bounce'); // 一旦リセット
+
+            if (streak >= 30) {
+                msgEl.innerText = currentLang === 'ja' ? "㊗️1ヶ月連続達成！おめでとう！㊗️" : "🏆 1 month streak! Congratulations! 🏆";
+                msgEl.classList.add('congratulation-bounce');
+                // 初めて30日に達した瞬間に派手なエフェクト
+                if (streak === 30 && mode === 'plus') {
+                    explode(150, '#FFD700'); 
+                }
+            } else if (streak > 0) {
+                msgEl.innerText = currentLang === 'ja' ? `${streak}日連続達成中！` : `${streak} day streak!`;
+            } else {
+                msgEl.innerText = "";
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = "";
+            const days = currentLang === 'ja' ? ['日','月','火','水','木','金','土'] : ['S','M','T','W','T','F','S'];
+            days.forEach(d => {
+                const l = document.createElement('div'); l.className = 'cal-day-label'; l.innerText = d; grid.appendChild(l);
+            });
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const todayStr = now.toISOString().split('T')[0];
+
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div'); empty.className = 'cal-cell'; grid.appendChild(empty);
+            }
+
+            for (let d = 1; d <= lastDate; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-cell has-date';
+                cell.innerText = d;
+                
+                const dateObj = new Date(year, month, d);
+                const dStr = dateObj.toISOString().split('T')[0];
+                
+                if (dStr === todayStr) cell.classList.add('today');
+                
+                const log = dailyLogs[dStr];
+                if (log && log.plus > log.minus) {
+                    cell.classList.add('plus-day');
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function showLogModal() {
+            const list = document.getElementById('logDetailList');
+            list.innerHTML = "";
+            const keys = Object.keys(dailyLogs).sort().reverse();
+            
+            if (keys.length === 0) {
+                list.innerHTML = "<p style='text-align:center;'>No data available</p>";
+            } else {
+                keys.forEach(k => {
+                    const log = dailyLogs[k];
+                    const row = document.createElement('div');
+                    row.style.display = "flex";
+                    row.style.justifyContent = "space-between";
+                    row.style.padding = "8px 0";
+                    row.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                    
+                    const pMin = Math.floor(log.plus / 60000);
+                    const mMin = Math.floor(log.minus / 60000);
+                    const statusIcon = log.plus > log.minus ? "✨" : "ー";
+                    
+                    row.innerHTML = `<span>${k}</span><span>${statusIcon} 貯:${pMin}m / 使:${mMin}m</span>`;
+                    list.appendChild(row);
+                });
+            }
+            document.getElementById('logModal').style.display = 'flex';
+        }
+        function closeLogModal() { document.getElementById('logModal').style.display = 'none'; }
+        // -------------------------
+
         const passInputField = document.getElementById('passInput');
         if (passInputField) {
             passInputField.addEventListener('touchstart', function(e) {
@@ -425,7 +625,6 @@
             }, {passive: true});
         }
 
-        // 通知権限の安全なリクエスト
         if ("Notification" in window) {
             try {
                 if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -454,7 +653,10 @@
                 supportMsg: `<div class="dev-badge">ただいま親子で開発中！</div><br>このアプリは<b>無料で使えます。</b><br><br>役に立つものを作って応援してもらえる喜びを、我が子に教育として感じてもらえたら嬉しいので「いいな」「役に立ったな」と思ったら応援してもらえると嬉しいです。今後もいろいろなアイデアを出し合って改善していく予定です！<br><br><span style="font-size:11px; color:#aaa;">※リンク先の「ファンレターを送る」から応援いただけます。お礼画面で「合言葉」が表示されます！</span>`,
                 codeDesc: "TimeBankを100円で応援すると色やアニメーションが変わる特別モードが使えます。",
                 devDesc: "<span class='desc-highlight'>「未来をつくる時間銀行」</span>Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
-                speedHeader: "TIME SPEED", speedDesc: "「貯める」時のスピードが変わります。",
+                speedHeader: "SPEED MODE", speedDesc: "「貯める」時のスピードが変わります。",
+                logHeader: "TIME BANK LOG",
+                logNote: "収支で貯めるが上回ると青に点滅します。クイックタイム加減算ボタンは反映されません。",
+                logBtn: "ログをみる",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">エネルギーを貯める</span><p class="step-desc">勉強や読書をするときは「＋貯める」を起動.未来の遊びエネルギーを蓄えよう。</p></div>
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギーを解放</span><p class="step-desc">遊びの時間は「ー使う」を起動.貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
@@ -512,7 +714,10 @@
                 supportMsg: `<div class="dev-badge">Now under parent-child development!</div><br>This app is <b>free to use.</b><br><br>We want our child to experience the joy of creating something useful and being supported as part of their education. If you think "this is great" or "this was helpful," we would be very happy to have your support!<br><br><span style="font-size:11px; color:#aaa;">*You can support via "Send Fan Letter" at the link. The "Secret Code" will appear on the thank-you screen!</span>`,
                 codeDesc: "By supporting TimeBank, you can unlock a Special Mode with unique colors and animations.",
                 devDesc: "<span class='desc-highlight'>\"Time Bank | Banking your future\"</span>Time Bank visualizes time as 'saving' and 'spending,' helping children manage their daily activities like a game.",
-                speedHeader: "TIME SPEED", speedDesc: "Changes the speed when 'Charging'.",
+                speedHeader: "SPEED MODE", speedDesc: "Changes the speed when 'Charging'.",
+                logHeader: "TIME BANK LOG",
+                logNote: "Flashes blue when Charge > Use. Quick buttons are not reflected.",
+                logBtn: "View Logs",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">CHARGE ENERGY</span><p class="step-desc">When studying or reading, start "CHARGE". Store up energy for your future play time!</p></div>
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">RELEASE ENERGY</span><p class="step-desc">When it's play time, start "USE". Using only what you've saved is the rule of the universe!</p></div>
@@ -586,10 +791,14 @@
             document.getElementById('installText').innerText = t.installGuide;
             document.getElementById('speedHeader').innerText = t.speedHeader;
             document.getElementById('speedDesc').innerText = t.speedDesc;
+            document.getElementById('logHeader').innerText = t.logHeader;
+            document.getElementById('logNoteText').innerText = t.logNote;
+            document.querySelector('.btn-log-view').innerText = t.logBtn;
             
             document.getElementById('btnJp').classList.toggle('active', lang === 'ja');
             document.getElementById('btnEn').classList.toggle('active', lang === 'en');
             updateShareLinks();
+            renderCalendar();
             updateUI();
         }
 
@@ -599,13 +808,10 @@
             document.getElementById('speedNormal').classList.toggle('active', speed === 1.0);
             document.getElementById('speedTurtle').classList.toggle('active', speed === 0.5);
             
-            if (speed === 1.2) {
-                speak(currentLang === 'ja' ? "うさぎさんモード" : "Rabbit mode");
-            } else if (speed === 0.5) {
-                speak(currentLang === 'ja' ? "亀さんモード" : "Turtle mode");
-            } else {
-                speak(currentLang === 'ja' ? "通常モード" : "Normal mode");
-            }
+            if (speed === 1.2) speak(currentLang === 'ja' ? "うさぎさんモード" : "Rabbit mode");
+            else if (speed === 0.5) speak(currentLang === 'ja' ? "亀さんモード" : "Turtle mode");
+            else speak(currentLang === 'ja' ? "通常モード" : "Normal mode");
+            
             if (mode === 'plus') {
                 baseMs = actualMs;
                 startTime = Date.now();
@@ -630,8 +836,7 @@
         function copyLink() {
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
-                const msg = currentLang === 'ja' ? "リンクをコピーしました！" : "Link copied!";
-                alert(msg);
+                alert(currentLang === 'ja' ? "リンクをコピーしました！" : "Link copied!");
             });
         }
 
@@ -663,9 +868,7 @@
             document.documentElement.style.setProperty('--supernova-glow', '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 255, 255, 0.4)');
             shootingStarProbability = 1 / 150; 
             document.getElementById('resetModeBtn').classList.add('show');
-            if (save) {
-                try { localStorage.setItem('timeBankSupernova', 'true'); } catch(e){}
-            }
+            if (save) try { localStorage.setItem('timeBankSupernova', 'true'); } catch(e){}
             explode(100, '#FFD700');
         }
 
@@ -677,16 +880,14 @@
             shootingStarProbability = 1 / (60 * 30);
             document.getElementById('resetModeBtn').classList.remove('show');
             document.getElementById('supporterMsg').innerText = "";
-            if (save) {
-                try { localStorage.removeItem('timeBankSupernova'); } catch(e){}
-            }
+            if (save) try { localStorage.removeItem('timeBankSupernova'); } catch(e){}
             explode(40, '#00f2ff');
         }
 
         let actualMs = 0, visualMs = 0, timerId = null, mode = null;
         let lastAnnouncedSec = null, isMuted = false;
         let particles = [], rotationAngle = 0;
-        let baseMs = 0, startTime = 0;
+        let baseMs = 0, startTime = 0, lastTickTime = 0;
         
         const timerCanvas = document.getElementById('timerCanvas'), ctx = timerCanvas.getContext('2d');
         const starCanvas = document.getElementById('starCanvas'), sctx = starCanvas.getContext('2d');
@@ -723,8 +924,7 @@
                 const radial = sctx.createRadialGradient(starCanvas.width/2, starCanvas.height/2, 0, starCanvas.width/2, starCanvas.height/2, 400);
                 radial.addColorStop(0, 'rgba(255, 200, 50, 0.15)');
                 radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                sctx.fillStyle = radial;
-                sctx.fillRect(0, 0, starCanvas.width, starCanvas.height);
+                sctx.fillStyle = radial; sctx.fillRect(0, 0, starCanvas.width, starCanvas.height);
             }
             stars.forEach(s => {
                 s.x += s.vx * (isSupernovaMode ? 2 : 1); s.y += s.vy * (isSupernovaMode ? 2 : 1);
@@ -745,8 +945,7 @@
                 grad.addColorStop(1, `rgba(${starColor}, 0)`);
                 sctx.strokeStyle = grad; sctx.lineWidth = isSupernovaMode ? 3 : 2;
                 sctx.moveTo(ss.x, ss.y); sctx.lineTo(ss.x - ss.vx * 2, ss.y - ss.vy * 2);
-                sctx.stroke();
-                return true;
+                sctx.stroke(); return true;
             });
         }
 
@@ -772,7 +971,7 @@
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
                 if (mode === 'minus') ctx.fillStyle = '#bc13fe'; 
                 else if (mode === 'plus' && chargeSpeed === 1.2) ctx.fillStyle = '#ff007f'; 
-                else if (isSupernovaMode) ctx.fillStyle = '#FFFACD';
+                else if (isSupernovaMode || this.particleColor === '#FFD700') ctx.fillStyle = '#FFFACD';
                 else ctx.fillStyle = '#FFFFFF';
                 ctx.globalAlpha = this.life * 0.8; ctx.fill(); ctx.globalAlpha = 1.0; 
             }
@@ -784,7 +983,7 @@
             try {
                 const state = { actualMs, mode, startTime: mode ? startTime : null, baseMs: mode ? baseMs : actualMs, chargeSpeed }; 
                 localStorage.setItem('timeBankState_v4', JSON.stringify(state)); 
-            } catch(e) { console.warn("Could not save state"); }
+            } catch(e) {}
         }
 
         function loadState() { 
@@ -794,7 +993,6 @@
                 if (saved) { 
                     const state = JSON.parse(saved); 
                     actualMs = state.actualMs || 0; 
-                    // 読み込み時にスピードをx1.0に固定するリクエストへの対応
                     setTimeSpeed(1.0);
                     if (state.mode && state.startTime) { 
                         baseMs = state.baseMs || actualMs; 
@@ -804,10 +1002,8 @@
                         actualMs = baseMs + (state.mode === 'plus' ? adjustedElapsed : -adjustedElapsed); 
                         startTimer(state.mode, true); 
                     } 
-                } else {
-                    setTimeSpeed(1.0); // 初回起動も1.0
-                }
-            } catch(e) { console.warn("Could not load state"); }
+                } else setTimeSpeed(1.0);
+            } catch(e) {}
         }
         
         function startTimer(newMode, isFromLoad = false) { 
@@ -818,21 +1014,31 @@
                     if (chargeSpeed === 0.5) speak(translations[currentLang].voiceChargeTurtle);
                     else if (chargeSpeed === 1.2) speak(translations[currentLang].voiceChargeRabbit);
                     else speak(translations[currentLang].voiceChargeNormal);
-                } else if (mode === 'minus') {
-                    speak(translations[currentLang].voiceUse);
-                }
-                baseMs = actualMs; 
-                startTime = Date.now(); 
+                } else if (mode === 'minus') speak(translations[currentLang].voiceUse);
+                baseMs = actualMs; startTime = Date.now(); 
             } 
+            lastTickTime = Date.now();
             if (pauseBtn) pauseBtn.classList.add('show'); 
             saveState(); 
             const tick = () => { 
                 const now = Date.now(); 
+                let delta = now - lastTickTime;
+                lastTickTime = now;
+                
                 let elapsed = now - startTime; 
+                let logElapsed = delta; 
+                
                 if (mode === 'plus') {
                     elapsed = elapsed * chargeSpeed;
+                    logElapsed = delta * chargeSpeed;
                 }
+                
                 actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed); 
+                
+                // --- RECORD TO LOG ---
+                recordTime(mode, logElapsed);
+                // ---------------------
+
                 const spawnRate = isSupernovaMode ? 0.5 : 0.3; 
                 if (mode === 'plus' && Math.random() > (1 - spawnRate)) particles.push(new Particle('in')); 
                 else if (mode === 'minus' && Math.random() > (1 - spawnRate + 0.05)) particles.push(new Particle('out')); 
@@ -846,15 +1052,14 @@
         
         function clearTime() { 
             if (Math.abs(actualMs) > 1000) explode(100); 
-            pauseTimer(); 
-            actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
+            pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
             try { localStorage.removeItem('timeBankState_v4'); } catch(e){}
         }
 
         function addTime(amount) { 
             const msToAdd = amount * 1000; 
             actualMs += msToAdd; 
-            if (mode !== null) { baseMs += msToAdd; } 
+            if (mode !== null) baseMs += msToAdd; 
             saveState(); 
             for(let i=0; i<20; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out')); 
         }
@@ -872,7 +1077,7 @@
                     const u = new SpeechSynthesisUtterance(text); 
                     u.lang = translations[currentLang].voiceLang; 
                     window.speechSynthesis.speak(u); 
-                } catch(e) { console.error("Speech Synthesis failed", e); }
+                } catch(e) {}
             } 
         }
 
@@ -900,10 +1105,9 @@
 
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
-            const rotSpeed = isSupernovaMode ? 1.5 : 1.0;
-            const speedFactor = (mode === 'plus') ? chargeSpeed : 1.0;
-            if (mode === 'plus') rotationAngle += 0.008 * rotSpeed * speedFactor;
-            else if (mode === 'minus') rotationAngle -= 0.015 * rotSpeed;
+            const rotBase = isSupernovaMode ? 1.5 : 1.0;
+            if (mode === 'plus') rotationAngle += 0.008 * rotBase * chargeSpeed;
+            else if (mode === 'minus') rotationAngle -= 0.015 * rotBase;
             else rotationAngle += 0.002;
             drawStars(); updateUI(); drawTimer(); requestAnimationFrame(animate);
         }
@@ -924,37 +1128,18 @@
             const label = document.getElementById('statusLabel');
             let textColor = 'white';
             
-            if (isNegative) { 
-                textColor = '#ff3b30'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; 
-            } else if (mode === 'minus') { 
-                textColor = '#bc13fe'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(188, 19, 254, 0.6)"; 
-            } else if (isTurtle) {
-                textColor = '#00ff7f'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(0, 255, 127, 0.5)";
-            } else if (isRabbit) {
-                textColor = '#ff007f'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 0, 127, 0.5)";
-            } else if (isSupernovaMode) { 
-                textColor = '#FFD700'; 
-                if (timeMainEl) timeMainEl.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; 
-            } else { 
-                if (timeMainEl) timeMainEl.style.textShadow = "none"; 
-            }
+            if (isNegative) { textColor = '#ff3b30'; if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 59, 48, 0.6)"; }
+            else if (mode === 'minus') { textColor = '#bc13fe'; if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(188, 19, 254, 0.6)"; }
+            else if (isTurtle) { textColor = '#00ff7f'; if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(0, 255, 127, 0.5)"; }
+            else if (isRabbit) { textColor = '#ff007f'; if (timeMainEl) timeMainEl.style.textShadow = "0 0 15px rgba(255, 0, 127, 0.5)"; }
+            else if (isSupernovaMode) { textColor = '#FFD700'; if (timeMainEl) timeMainEl.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.3)"; }
+            else { if (timeMainEl) timeMainEl.style.textShadow = "none"; }
 
             if (label) {
-                if (isNegative) { 
-                    label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); 
-                } else if (mode === 'plus') { 
-                    label.innerText = translations[currentLang].charging; 
-                    label.style.color = isTurtle ? '#00ff7f' : (isRabbit ? '#ff007f' : (isSupernovaMode ? '#FFD700' : 'white')); 
-                    label.classList.add('pulse-text'); 
-                } else if (mode === 'minus') { 
-                    label.innerText = translations[currentLang].using; label.style.color = '#bc13fe'; label.classList.add('pulse-text'); 
-                } else { 
-                    label.innerText = ""; label.classList.remove('pulse-text'); 
-                }
+                if (isNegative) { label.innerText = translations[currentLang].shortage; label.style.color = '#ff3b30'; label.classList.add('pulse-text'); }
+                else if (mode === 'plus') { label.innerText = translations[currentLang].charging; label.style.color = isTurtle ? '#00ff7f' : (isRabbit ? '#ff007f' : (isSupernovaMode ? '#FFD700' : 'white')); label.classList.add('pulse-text'); }
+                else if (mode === 'minus') { label.innerText = translations[currentLang].using; label.style.color = '#bc13fe'; label.classList.add('pulse-text'); }
+                else { label.innerText = ""; label.classList.remove('pulse-text'); }
             }
             const alertOverlay = document.getElementById('alertOverlay');
             if (alertOverlay) {
@@ -970,21 +1155,16 @@
             ctx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
             let cx = timerCanvas.width / 2, cy = timerCanvas.height / 2;
             const time = performance.now();
-            const isUsingMode = (mode === 'minus');
-            const isChargingMode = (mode === 'plus');
-            const isNegative = (actualMs < 0);
-            const isTurtle = (isChargingMode && chargeSpeed === 0.5);
-            const isRabbit = (isChargingMode && chargeSpeed === 1.2);
+            const isUsingMode = (mode === 'minus'), isChargingMode = (mode === 'plus'), isNegative = (actualMs < 0);
+            const isTurtle = (isChargingMode && chargeSpeed === 0.5), isRabbit = (isChargingMode && chargeSpeed === 1.2);
 
             const pulseRate = (isUsingMode || isNegative || isTurtle || isRabbit) ? 400 : 800;
             const basePulse = (Math.sin(time / pulseRate) + 1) / 2;
             let heartBeat = 0;
             if (isSupernovaMode && isChargingMode) {
-                const t = (time % 1000) / 1000; 
-                heartBeat = Math.pow(Math.sin(t * Math.PI), 10) * 0.8 + Math.pow(Math.sin(t * Math.PI - 0.5), 10) * 0.5;
+                const t = (time % 1000) / 1000; heartBeat = Math.pow(Math.sin(t * Math.PI), 10) * 0.8 + Math.pow(Math.sin(t * Math.PI - 0.5), 10) * 0.5;
             }
-            const baseRadius = 110;
-            const ringSpacing = 16;
+            const baseRadius = 110, ringSpacing = 16;
             for (let i = 0; i < 6; i++) {
                 ctx.beginPath(); ctx.arc(cx, cy, baseRadius + (i * ringSpacing), 0, Math.PI * 2);
                 ctx.strokeStyle = isSupernovaMode ? `rgba(255, 215, 0, 0.08)` : `rgba(255, 255, 255, 0.03)`;
@@ -992,17 +1172,12 @@
             }
             const totalSeconds = visualMs / 1000, absSec = Math.abs(totalSeconds);
             let activeGradients;
-            if (isNegative) {
-                activeGradients = [['#ff0000', '#880000']];
-            } else if (isUsingMode) {
-                activeGradients = usingGradients; 
-            } else if (isTurtle) {
-                activeGradients = [['#00ff7f', '#008844']]; 
-            } else if (isRabbit) {
-                activeGradients = rabbitGradients; 
-            } else {
-                activeGradients = isSupernovaMode ? novaGradients : cyberGradients;
-            }
+            if (isNegative) activeGradients = [['#ff0000', '#880000']];
+            else if (isUsingMode) activeGradients = usingGradients; 
+            else if (isTurtle) activeGradients = [['#00ff7f', '#008844']]; 
+            else if (isRabbit) activeGradients = rabbitGradients; 
+            else activeGradients = isSupernovaMode ? novaGradients : cyberGradients;
+
             for (let i = 0; i < 6; i++) {
                 const radius = baseRadius + (i * ringSpacing), hourInSec = 3600;
                 let progress = Math.max(0, Math.min(1, (absSec - i * hourInSec) / hourInSec));
@@ -1023,6 +1198,7 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
+        loadLogs(); // ログ読み込み
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
