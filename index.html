@@ -25,10 +25,12 @@
             font-family: 'Inter', 'Helvetica Neue', sans-serif;
             display: flex;
             flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; overflow-x: hidden;
+            min-height: 100vh; margin: 0; 
+            overflow: hidden; /* 画面全体の揺れを防止 */
             user-select: none;
             -webkit-user-select: none;
-            touch-action: manipulation;
+            -webkit-touch-callout: none; /* 長押しメニュー防止 */
+            touch-action: none; /* ブラウザのジェスチャーを無効化 */
             padding-top: var(--safe-top);
             box-sizing: border-box;
             transition: background 1.5s ease;
@@ -56,6 +58,7 @@
         .menu-trigger {
             position: absolute; left: 20px; cursor: pointer;
             width: 30px; height: 30px; display: flex; flex-direction: column; justify-content: center; gap: 6px;
+            touch-action: auto; /* メニューは操作可能に */
         }
         .menu-trigger span { width: 100%; height: 2px; background: white; transition: 0.3s; }
         
@@ -96,6 +99,7 @@
             padding: 80px 30px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,0.1);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y; /* メニュー内はスクロール可能に */
         }
         .side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
         .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
@@ -110,7 +114,6 @@
         /* --- LOG SECTION STYLES --- */
         .log-status-msg { font-size: 12px; color: var(--accent-color); font-weight: bold; margin-bottom: 10px; text-align: center; min-height: 1.2em; }
         
-        /* 1ヶ月達成用のお祝いスタイル */
         .congratulation-bounce {
             font-size: 14px !important;
             animation: congrats-float 2s infinite ease-in-out, rainbow-text 3s infinite linear !important;
@@ -143,7 +146,6 @@
         }
         .log-note { font-size: 10px; color: #666; line-height: 1.4; margin-top: 8px; }
         .btn-log-view { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-top: 10px; }
-        /* ------------------------- */
 
         .support-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .btn-support-link { 
@@ -165,6 +167,7 @@
             user-select: text !important;
             -webkit-user-select: text !important;
             appearance: none; -webkit-appearance: none;
+            touch-action: auto;
         }
         .pass-input:focus { border-color: var(--accent-color); background: rgba(255,255,255,0.15); }
         
@@ -198,6 +201,7 @@
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             z-index: 9999;
             display: none; align-items: center; justify-content: center;
+            touch-action: pan-y;
         }
         .modal-content {
             background: rgba(10, 10, 26, 0.98);
@@ -253,7 +257,7 @@
 
         .app-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; width: 100%; max-width: 900px; margin-top: 40px; }
         .quick-controls { display: flex; flex-direction: column; gap: 12px; }
-        .btn-quick { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px; transition: all 0.2s; touch-action: manipulation; }
+        .btn-quick { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #888; width: 55px; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 11px; transition: all 0.2s; touch-action: none; }
         .btn-quick:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); color: #fff; }
 
         .timer-container { position: relative; width: 500px; height: 500px; display: flex; align-items: center; justify-content: center; }
@@ -268,12 +272,12 @@
 
         .bottom-area { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; padding-bottom: env(safe-area-inset-bottom, 20px); }
         .controls { display: flex; align-items: center; gap: 50px; height: 80px; }
-        .btn-start-wrap { text-align: center; width: 75px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; touch-action: manipulation; }
-        .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; }
-        .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 1px; display: block; }
-        .btn-pause { width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden; touch-action: manipulation; }
+        .btn-start-wrap { text-align: center; width: 75px; cursor: pointer; background: none; border: none; color: white; transition: 0.2s; touch-action: none; }
+        .btn-start-wrap span { font-size: 32px; display: block; font-weight: 200; pointer-events: none; }
+        .btn-start-wrap label { font-size: 11px; opacity: 0.8; cursor: pointer; letter-spacing: 1px; display: block; pointer-events: none; }
+        .btn-pause { width: 65px; height: 65px; background-color: #ff3b30; border: none; border-radius: 50%; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 59, 48, 0.4); opacity: 0; transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); visibility: hidden; touch-action: none; }
         .btn-pause.show { visibility: visible; opacity: 1; transform: scale(1); }
-        .clear-btn { background: transparent; border: 1px solid #333; color: #555; padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s; touch-action: manipulation; }
+        .clear-btn { background: transparent; border: 1px solid #333; color: #555; padding: 8px 60px; border-radius: 10px; cursor: pointer; font-size: 11px; letter-spacing: 2px; transition: 0.3s; touch-action: none; }
 
         @media (max-width: 600px) {
             body { justify-content: flex-start; }
@@ -298,17 +302,17 @@
     </div>
 
     <header>
-        <div class="menu-trigger" onclick="toggleMenu()">
+        <div class="menu-trigger" onclick="toggleMenu(event)">
             <span></span><span></span><span></span>
         </div>
         <div class="logo-text">TIME<span>BANK</span></div>
-        <div class="alert-toggle active" id="alertToggle" onclick="toggleMute()">
+        <div class="alert-toggle active" id="alertToggle" onclick="toggleMute(event)">
             <div class="bell-icon"></div>
             <div class="mute-line"></div>
         </div>
     </header>
 
-    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu(event)"></div>
     <div class="side-menu" id="sideMenu">
         
         <div class="menu-section">
@@ -326,7 +330,7 @@
                     収支で貯めるが上回ると青に点滅します。クイックタイム加減算ボタンは反映されません。
                 </div>
             </div>
-            <button class="btn-log-view" onclick="showLogModal()">ログをみる</button>
+            <button class="btn-log-view" onclick="showLogModal(event)">ログをみる</button>
         </div>
         <div class="menu-section">
             <h3 id="langHeader">Language</h3>
@@ -336,13 +340,13 @@
 
         <div class="menu-section">
             <h3 id="howToHeader">GUIDE</h3>
-            <div id="btnGuide" class="menu-item" onclick="showHowTo()">使い方を見る</div>
-            <div id="btnAndroid" class="menu-item" onclick="showAndroidModal()">Androidユーザー様へ</div>
+            <div id="btnGuide" class="menu-item" onclick="showHowTo(event)">使い方を見る</div>
+            <div id="btnAndroid" class="menu-item" onclick="showAndroidModal(event)">Androidユーザー様へ</div>
         </div>
 
         <div class="menu-section">
             <h3 id="parentsHeader">FOR PARENTS</h3>
-            <div id="btnParents" class="menu-item" onclick="showParentsModal()">保護者の方へ</div>
+            <div id="btnParents" class="menu-item" onclick="showParentsModal(event)">保護者の方へ</div>
         </div>
 
         <div class="menu-section">
@@ -358,7 +362,7 @@
             <div id="codeDesc" style="font-size: 11px; margin-bottom: 10px; color: #888; line-height: 1.4;"></div>
             <input type="text" id="passInput" class="pass-input" placeholder="合言葉を入力" autocomplete="off" autocapitalize="none" inputmode="text">
             <div class="auth-btns">
-                <button class="btn-auth" onclick="checkPass()">認証</button>
+                <button class="btn-auth" onclick="checkPass(event)">認証</button>
                 <button id="resetModeBtn" class="btn-reset-mode" onclick="deactivateSupernovaMode(true)">通常モード</button>
             </div>
             <div id="supporterMsg" style="font-size: 11px; margin-top: 8px; color: var(--accent-color); line-height: 1.4;"></div>
@@ -389,7 +393,7 @@
                 <a id="shareLine" href="#" target="_blank" class="share-btn" title="LINE">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.45 2 9.68c0 2.2 1.24 4.17 3.23 5.48-.16.53-.58 1.93-.66 2.22-.1.35.14.35.3.23.12-.09 1.94-1.32 2.7-1.84.45.13.93.2 1.43.2 5.52 0 10-3.45 10-7.68S17.52 2 12 2z"/></svg>
                 </a>
-                <div class="share-btn copy" onclick="copyLink()" title="Copy Link">
+                <div class="share-btn copy" onclick="copyLink(event)" title="Copy Link">
                     <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                 </div>
             </div>
@@ -404,7 +408,7 @@
         <div class="modal-content" style="text-align: left;">
             <div id="parentsContent"></div>
             <div style="text-align: center; margin-top: 20px;">
-                <button class="close-btn" onclick="closeParentsModal()">CLOSE</button>
+                <button class="close-btn" onclick="closeParentsModal(event)">CLOSE</button>
             </div>
         </div>
     </div>
@@ -413,7 +417,7 @@
         <div class="modal-content" style="text-align: left;">
             <div id="androidContent"></div>
             <div style="text-align: center; margin-top: 20px;">
-                <button class="close-btn" onclick="closeAndroidModal()">CLOSE</button>
+                <button class="close-btn" onclick="closeAndroidModal(event)">CLOSE</button>
             </div>
         </div>
     </div>
@@ -424,7 +428,7 @@
             <div id="logDetailList" style="margin-top:20px; font-size:12px; color:#ccc; max-height:300px; overflow-y:auto; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
             </div>
             <div style="text-align: center; margin-top: 20px;">
-                <button class="close-btn" onclick="closeLogModal()">CLOSE</button>
+                <button class="close-btn" onclick="closeLogModal(event)">CLOSE</button>
             </div>
         </div>
     </div>
@@ -433,10 +437,10 @@
 
     <div class="app-wrapper">
         <div class="quick-controls">
-            <button class="btn-quick" onclick="addTime(-1800)">-30m</button>
-            <button class="btn-quick" onclick="addTime(-900)">-15m</button>
-            <button class="btn-quick" onclick="addTime(-300)">-5m</button>
-            <button class="btn-quick" onclick="addTime(-60)">-1m</button>
+            <button class="btn-quick" onclick="addTime(-1800, event)">-30m</button>
+            <button class="btn-quick" onclick="addTime(-900, event)">-15m</button>
+            <button class="btn-quick" onclick="addTime(-300, event)">-5m</button>
+            <button class="btn-quick" onclick="addTime(-60, event)">-1m</button>
         </div>
 
         <div class="timer-container">
@@ -450,24 +454,24 @@
         </div>
 
         <div class="quick-controls">
-            <button class="btn-quick" onclick="addTime(1800)">+30m</button>
-            <button class="btn-quick" onclick="addTime(300)">+5m</button>
-            <button class="btn-quick" onclick="addTime(60)">+1m</button>
-            <button class="btn-quick" onclick="addTime(900)">+15m</button>
+            <button class="btn-quick" onclick="addTime(1800, event)">+30m</button>
+            <button class="btn-quick" onclick="addTime(300, event)">+5m</button>
+            <button class="btn-quick" onclick="addTime(60, event)">+1m</button>
+            <button class="btn-quick" onclick="addTime(900, event)">+15m</button>
         </div>
     </div>
 
     <div class="bottom-area">
         <div class="controls">
-            <button class="btn-start-wrap" onclick="startTimer('minus')">
+            <button class="btn-start-wrap" onclick="startTimer('minus', false, event)">
                 <span>ー</span><label id="labelUse">使う</label>
             </button>
-            <button id="pauseBtn" class="btn-pause" onclick="pauseTimer()">||</button>
-            <button class="btn-start-wrap" onclick="startTimer('plus')">
+            <button id="pauseBtn" class="btn-pause" onclick="pauseTimer(event)">||</button>
+            <button class="btn-start-wrap" onclick="startTimer('plus', false, event)">
                 <span>＋</span><label id="labelCharge">貯める</label>
             </button>
         </div>
-        <button id="resetBtn" class="clear-btn" onclick="clearTime()">リセット</button>
+        <button id="resetBtn" class="clear-btn" onclick="clearTime(event)">リセット</button>
     </div>
 
     <script>
@@ -541,7 +545,6 @@
             if (streak >= 30) {
                 msgEl.innerText = currentLang === 'ja' ? "㊗️1ヶ月連続達成！おめでとう！㊗️" : "🏆 1 month streak! Congratulations! 🏆";
                 msgEl.classList.add('congratulation-bounce');
-                // 初めて30日に達した瞬間に派手なエフェクト
                 if (streak === 30 && mode === 'plus') {
                     explode(150, '#FFD700'); 
                 }
@@ -589,7 +592,8 @@
             }
         }
 
-        function showLogModal() {
+        function showLogModal(e) {
+            if(e) e.preventDefault();
             const list = document.getElementById('logDetailList');
             list.innerHTML = "";
             const keys = Object.keys(dailyLogs).sort().reverse();
@@ -615,7 +619,7 @@
             }
             document.getElementById('logModal').style.display = 'flex';
         }
-        function closeLogModal() { document.getElementById('logModal').style.display = 'none'; }
+        function closeLogModal(e) { if(e) e.preventDefault(); document.getElementById('logModal').style.display = 'none'; }
         // -------------------------
 
         const passInputField = document.getElementById('passInput');
@@ -661,7 +665,7 @@
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">エネルギーを貯める</span><p class="step-desc">勉強や読書をするときは「＋貯める」を起動.未来の遊びエネルギーを蓄えよう。</p></div>
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">エネルギーを解放</span><p class="step-desc">遊びの時間は「ー使う」を起動.貯めた分だけ、全力で楽しむのが宇宙のルールだ！</p></div>
                     <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">「1：1」の均衡</span><p class="step-desc">学ぶ時間と遊ぶ時間を同じにする。これが最強のタイムマスターへの道。</p></div>
-                    <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
+                    <button class="close-btn" onclick="closeHowTo(event)">CLOSE</button>`,
                 androidContent: `
                     <h2 style="color:var(--accent-color); font-size:18px; margin-bottom:15px; text-align:center;">Androidユーザー様へ</h2>
                     <p style="font-size:12px; line-height:1.6; color:#ccc; margin-bottom:15px;">
@@ -722,7 +726,7 @@
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">CHARGE ENERGY</span><p class="step-desc">When studying or reading, start "CHARGE". Store up energy for your future play time!</p></div>
                     <div class="modal-step"><span class="step-num">MISSION 02</span><span class="step-title">RELEASE ENERGY</span><p class="step-desc">When it's play time, start "USE". Using only what you've saved is the rule of the universe!</p></div>
                     <div class="modal-step"><span class="step-num">GOLDEN RATIO</span><span class="step-title">EQUILIBRIUM 1:1</span><p class="step-desc">Balance learning and playing equally. This is the path to becoming a True Time Master.</p></div>
-                    <button class="close-btn" onclick="closeHowTo()">CLOSE</button>`,
+                    <button class="close-btn" onclick="closeHowTo(event)">CLOSE</button>`,
                 androidContent: `
                     <h2 style="color:var(--accent-color); font-size:18px; margin-bottom:15px; text-align:center;">For Android Users</h2>
                     <p style="font-size:12px; line-height:1.6; color:#ccc; margin-bottom:15px;">
@@ -833,21 +837,24 @@
             document.getElementById('shareLine').href = `https://line.me/R/share?text=${text}%20${url}`;
         }
 
-        function copyLink() {
+        function copyLink(e) {
+            if(e) e.preventDefault();
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
                 alert(currentLang === 'ja' ? "リンクをコピーしました！" : "Link copied!");
             });
         }
 
-        function toggleMenu() {
+        function toggleMenu(e) {
+            if(e) e.preventDefault();
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('menuOverlay');
             menu.classList.toggle('open');
             overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
         }
 
-        function checkPass() {
+        function checkPass(e) {
+            if(e) e.preventDefault();
             const input = document.getElementById('passInput').value;
             const msg = document.getElementById('supporterMsg');
             if (input === PASS_CODE) {
@@ -1006,7 +1013,8 @@
             } catch(e) {}
         }
         
-        function startTimer(newMode, isFromLoad = false) { 
+        function startTimer(newMode, isFromLoad = false, e) { 
+            if(e) e.preventDefault();
             if (timerId) cancelAnimationFrame(timerId); 
             mode = newMode; 
             if (!isFromLoad) {
@@ -1034,10 +1042,7 @@
                 }
                 
                 actualMs = baseMs + (mode === 'plus' ? elapsed : -elapsed); 
-                
-                // --- RECORD TO LOG ---
                 recordTime(mode, logElapsed);
-                // ---------------------
 
                 const spawnRate = isSupernovaMode ? 0.5 : 0.3; 
                 if (mode === 'plus' && Math.random() > (1 - spawnRate)) particles.push(new Particle('in')); 
@@ -1048,15 +1053,17 @@
             timerId = requestAnimationFrame(tick); 
         }
 
-        function pauseTimer() { if(timerId) cancelAnimationFrame(timerId); timerId = null; mode = null; if (pauseBtn) pauseBtn.classList.remove('show'); saveState(); }
+        function pauseTimer(e) { if(e) e.preventDefault(); if(timerId) cancelAnimationFrame(timerId); timerId = null; mode = null; if (pauseBtn) pauseBtn.classList.remove('show'); saveState(); }
         
-        function clearTime() { 
+        function clearTime(e) { 
+            if(e) e.preventDefault();
             if (Math.abs(actualMs) > 1000) explode(100); 
             pauseTimer(); actualMs = 0; visualMs = 0; lastAnnouncedSec = null; 
             try { localStorage.removeItem('timeBankState_v4'); } catch(e){}
         }
 
-        function addTime(amount) { 
+        function addTime(amount, e) { 
+            if(e) e.preventDefault();
             const msToAdd = amount * 1000; 
             actualMs += msToAdd; 
             if (mode !== null) baseMs += msToAdd; 
@@ -1064,7 +1071,8 @@
             for(let i=0; i<20; i++) particles.push(new Particle(amount > 0 ? 'in' : 'out')); 
         }
 
-        function toggleMute() { 
+        function toggleMute(e) { 
+            if(e) e.preventDefault();
             isMuted = !isMuted; 
             const toggleBtn = document.getElementById('alertToggle');
             if (toggleBtn) toggleBtn.classList.toggle('is-muted', isMuted); 
@@ -1096,12 +1104,12 @@
             } 
         }
 
-        function showHowTo() { document.getElementById('howToModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
-        function closeHowTo() { document.getElementById('howToModal').style.display = 'none'; }
-        function showParentsModal() { document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
-        function closeParentsModal() { document.getElementById('parentsModal').style.display = 'none'; }
-        function showAndroidModal() { document.getElementById('androidModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
-        function closeAndroidModal() { document.getElementById('androidModal').style.display = 'none'; }
+        function showHowTo(e) { if(e) e.preventDefault(); document.getElementById('howToModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeHowTo(e) { if(e) e.preventDefault(); document.getElementById('howToModal').style.display = 'none'; }
+        function showParentsModal(e) { if(e) e.preventDefault(); document.getElementById('parentsModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeParentsModal(e) { if(e) e.preventDefault(); document.getElementById('parentsModal').style.display = 'none'; }
+        function showAndroidModal(e) { if(e) e.preventDefault(); document.getElementById('androidModal').style.display = 'flex'; if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu(); }
+        function closeAndroidModal(e) { if(e) e.preventDefault(); document.getElementById('androidModal').style.display = 'none'; }
 
         function animate() {
             visualMs += (actualMs - visualMs) * 0.15;
@@ -1198,7 +1206,7 @@
             particles = particles.filter(p => p.update() ? (p.draw(), true) : false);
         }
         
-        loadLogs(); // ログ読み込み
+        loadLogs();
         setLanguage('ja'); 
         loadState(); 
         checkInstallStatus();
