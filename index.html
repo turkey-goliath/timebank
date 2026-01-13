@@ -480,6 +480,12 @@
         let shootingStarProbability = 1 / (60 * 30);
         let chargeSpeed = 1.0;
 
+        // --- HELPER FOR LOCAL DATE (YYYY-MM-DD) ---
+        function getLocalDateString() {
+            const n = new Date();
+            return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+        }
+
         // --- LOG LOGIC ---
         let dailyLogs = {}; 
         function loadLogs() {
@@ -507,7 +513,7 @@
 
         function recordTime(mode, ms) {
             if (ms <= 0) return;
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             if (!dailyLogs[today]) dailyLogs[today] = { plus: 0, minus: 0 };
             
             if (mode === 'plus') dailyLogs[today].plus += ms;
@@ -519,13 +525,13 @@
         }
 
         function updateStreakInfo() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const keys = Object.keys(dailyLogs).sort().reverse();
             let streak = 0;
             let current = new Date();
             
             for (let i = 0; i < 100; i++) {
-                const dStr = current.toISOString().split('T')[0];
+                const dStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
                 const log = dailyLogs[dStr];
                 if (log && log.plus > log.minus) {
                     streak++;
@@ -568,7 +574,7 @@
             const month = now.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
-            const todayStr = now.toISOString().split('T')[0];
+            const todayStr = getLocalDateString();
 
             for (let i = 0; i < firstDay; i++) {
                 const empty = document.createElement('div'); empty.className = 'cal-cell'; grid.appendChild(empty);
@@ -580,7 +586,7 @@
                 cell.innerText = d;
                 
                 const dateObj = new Date(year, month, d);
-                const dStr = dateObj.toISOString().split('T')[0];
+                const dStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                 
                 if (dStr === todayStr) cell.classList.add('today');
                 
