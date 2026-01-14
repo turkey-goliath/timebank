@@ -327,7 +327,7 @@
                 <div class="calendar-grid" id="calendarGrid">
                     </div>
                 <div class="log-note" id="logNoteText">
-                    収支で貯めるが上回ると青に点滅します。クイックタイム加減算ボタンは反映されません。
+                    「貯める」を実行すると青に点滅します。クイックタイム加減算ボタンは反映されません。
                 </div>
             </div>
             <button class="btn-log-view" onclick="showLogModal(event)">ログをみる</button>
@@ -533,7 +533,8 @@
             for (let i = 0; i < 100; i++) {
                 const dStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
                 const log = dailyLogs[dStr];
-                if (log && log.plus > log.minus) {
+                // 修正：plus > 0 (1秒以上貯めた記録がある) ならクリア
+                if (log && log.plus >= 1000) {
                     streak++;
                     current.setDate(current.getDate() - 1);
                 } else {
@@ -546,23 +547,26 @@
             }
             
             const msgEl = document.getElementById('logStatus');
-            msgEl.classList.remove('congratulation-bounce'); // 一旦リセット
+            if (msgEl) {
+                msgEl.classList.remove('congratulation-bounce'); 
 
-            if (streak >= 30) {
-                msgEl.innerText = currentLang === 'ja' ? "㊗️1ヶ月連続達成！おめでとう！㊗️" : "🏆 1 month streak! Congratulations! 🏆";
-                msgEl.classList.add('congratulation-bounce');
-                if (streak === 30 && mode === 'plus') {
-                    explode(150, '#FFD700'); 
+                if (streak >= 30) {
+                    msgEl.innerText = currentLang === 'ja' ? "㊗️1ヶ月連続達成！おめでとう！㊗️" : "🏆 1 month streak! Congratulations! 🏆";
+                    msgEl.classList.add('congratulation-bounce');
+                    if (streak === 30 && mode === 'plus') {
+                        explode(150, '#FFD700'); 
+                    }
+                } else if (streak > 0) {
+                    msgEl.innerText = currentLang === 'ja' ? `${streak}日連続達成中！` : `${streak} day streak!`;
+                } else {
+                    msgEl.innerText = "";
                 }
-            } else if (streak > 0) {
-                msgEl.innerText = currentLang === 'ja' ? `${streak}日連続達成中！` : `${streak} day streak!`;
-            } else {
-                msgEl.innerText = "";
             }
         }
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
+            if (!grid) return;
             grid.innerHTML = "";
             const days = currentLang === 'ja' ? ['日','月','火','水','木','金','土'] : ['S','M','T','W','T','F','S'];
             days.forEach(d => {
@@ -591,7 +595,8 @@
                 if (dStr === todayStr) cell.classList.add('today');
                 
                 const log = dailyLogs[dStr];
-                if (log && log.plus > log.minus) {
+                // 修正：1秒以上貯めた記録があれば点滅
+                if (log && log.plus >= 1000) {
                     cell.classList.add('plus-day');
                 }
                 grid.appendChild(cell);
@@ -601,6 +606,7 @@
         function showLogModal(e) {
             if(e) e.preventDefault();
             const list = document.getElementById('logDetailList');
+            if (!list) return;
             list.innerHTML = "";
             const keys = Object.keys(dailyLogs).sort().reverse();
             
@@ -617,7 +623,8 @@
                     
                     const pMin = Math.floor(log.plus / 60000);
                     const mMin = Math.floor(log.minus / 60000);
-                    const statusIcon = log.plus > log.minus ? "✨" : "ー";
+                    // 表示ロジックの修正：plusがあればキラキラ
+                    const statusIcon = log.plus >= 1000 ? "✨" : "ー";
                     
                     row.innerHTML = `<span>${k}</span><span>${statusIcon} 貯:${pMin}m / 使:${mMin}m</span>`;
                     list.appendChild(row);
@@ -665,7 +672,7 @@
                 devDesc: "<span class='desc-highlight'>「未来をつくる時間銀行」</span>Time Bankは、子どもたちの時間を「貯める」「使う」という概念で視覚化し、日々の活動をゲームのように管理・改善するためのツールです。",
                 speedHeader: "SPEED MODE", speedDesc: "「貯める」時のスピードが変わります。",
                 logHeader: "TIME BANK LOG",
-                logNote: "収支で貯めるが上回ると青に点滅します。クイックタイム加減算ボタンは反映されません。",
+                logNote: "「貯める」を実行すると青に点滅します。クイックタイム加減算ボタンは反映されません。",
                 logBtn: "ログをみる",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">エネルギーを貯める</span><p class="step-desc">勉強や読書をするときは「＋貯める」を起動.未来の遊びエネルギーを蓄えよう。</p></div>
@@ -726,7 +733,7 @@
                 devDesc: "<span class='desc-highlight'>\"Time Bank | Banking your future\"</span>Time Bank visualizes time as 'saving' and 'spending,' helping children manage their daily activities like a game.",
                 speedHeader: "SPEED MODE", speedDesc: "Changes the speed when 'Charging'.",
                 logHeader: "TIME BANK LOG",
-                logNote: "Flashes blue when Charge > Use. Quick buttons are not reflected.",
+                logNote: "Flashes blue when you 'Charge' time. Quick buttons are not reflected.",
                 logBtn: "View Logs",
                 guideContent: `
                     <div class="modal-step"><span class="step-num">MISSION 01</span><span class="step-title">CHARGE ENERGY</span><p class="step-desc">When studying or reading, start "CHARGE". Store up energy for your future play time!</p></div>
